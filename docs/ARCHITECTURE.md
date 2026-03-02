@@ -252,6 +252,29 @@ public interface IDataProvider
 }
 ```
 
+### 3.6 Data Validation Interface
+
+```csharp
+public interface IDataValidator
+{
+    ValidationResult Validate<T>(string path, T data);
+    ValidationResult ValidateAll(IDataProvider provider);
+}
+```
+
+Validates data at load time. Returns structured errors with file path, field name, and human-readable message. Used by both the game (fail-fast on bad data) and tests (verify error messages for malformed fixtures).
+
+### 3.7 Simulation Factory Interface
+
+```csharp
+public interface ISimulationFactory
+{
+    ISimulationState Create(IDataProvider dataProvider, int? seed = null);
+}
+```
+
+Accepts an `IDataProvider` (either `JsonDataProvider` for the real game or `InMemoryDataProvider` for tests) and an optional seed for deterministic randomness. This is the single entry point for constructing a runnable simulation.
+
 ## 4. Data Flow
 
 ### 4.1 Simulation Tick
@@ -422,9 +445,26 @@ game/
 │   │   │   ├── LaborMarketTests.cs
 │   │   │   ├── GoodsMarketTests.cs
 │   │   │   └── BondMarketTests.cs
-│   │   └── Integration/
-│   │       ├── TickIntegrationTests.cs
-│   │       └── MoneyFlowTests.cs
+│   │   ├── Data/
+│   │   │   ├── JsonDataProviderTests.cs
+│   │   │   ├── DataValidatorTests.cs
+│   │   │   └── DataModelTests.cs
+│   │   ├── Integration/
+│   │   │   ├── TickIntegrationTests.cs
+│   │   │   └── MoneyFlowTests.cs
+│   │   ├── PropertyTests/
+│   │   │   ├── SfcInvariantTests.cs
+│   │   │   ├── PriceInvariantTests.cs
+│   │   │   └── MoneyStockTests.cs
+│   │   ├── Helpers/
+│   │   │   ├── InMemoryDataProvider.cs
+│   │   │   ├── SimulationTestHarness.cs
+│   │   │   └── TestDataBuilder.cs
+│   │   └── TestData/
+│   │       ├── Minimal/              # 1 sector, 1 class — bare minimum valid data
+│   │       ├── FullBase/             # Copy of data/base/ for integration tests
+│   │       ├── InvalidData/          # Malformed files for error handling tests
+│   │       └── Scenarios/            # Specific economic states (high-inflation, etc.)
 │   └── Game.Tests/                   # Integration tests that may need Godot
 │       └── Game.Tests.csproj
 │
@@ -507,7 +547,19 @@ Data defines:  "Agriculture takes labor+land, outputs food, has 15% markup"
 
 This means mods can add new sectors, goods, and household classes without touching code (Tier 1 modding).
 
-### 6.5 Path-Based State Access
+### 6.5 Dependency Injection for Testability
+
+All simulation components receive their dependencies via constructor injection. No component creates its own dependencies internally. This enables tests to substitute any dependency with a test double.
+
+**Core injectable dependencies:**
+- `IDataProvider` — data loading (real: `JsonDataProvider`, test: `InMemoryDataProvider`)
+- `ILedger` — transaction recording and SFC checking
+- `IAgentRegistry` — agent lookup and iteration
+- `IRandom` — seeded random number generation for deterministic tests
+
+Example: a `Firm` receives `ILedger` and `IDataProvider` in its constructor. In production, these are the real implementations wired through `ISimulationFactory`. In tests, they are in-memory fakes that allow precise control over inputs and verification of outputs.
+
+### 6.6 Path-Based State Access
 
 All simulation state is queryable by a dot-separated path (e.g., `firms.agriculture.price`). This is used by:
 - The console (`query firms.agriculture.price`)
@@ -554,3 +606,124 @@ The simulation runs on a single thread. Multi-threading adds complexity and is u
 - Monthly ticks are sequential by nature (phases depend on previous phases)
 - Population groups (not individual agents) keep the computation manageable
 - Godot's main thread handles rendering; simulation can run on a background thread if needed later
+
+## 9. Testing Architecture
+
+### 9.1 Testing Philosophy
+
+The simulation engine is developed using Test-Driven Development (TDD). Tests are written before implementation code, following the red-green-refactor cycle:
+
+1. **Red:** Write a failing test that defines the desired behavior
+2. **Green:** Write the minimum code to make the test pass
+3. **Refactor:** Clean up the code while keeping all tests green
+
+Tests are the executable specification of the economic model. If a behavior isn't tested, it isn't guaranteed.
+
+### 9.2 Test Layers
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              Property-Based Tests                        │
+│  SFC identity holds for all seeds and policy sequences  │
+│  No negative prices for any valid input                 │
+│  Employment rate always in [0, 1]                       │
+│  Money stock = govt spending - taxation + bank lending   │
+├─────────────────────────────────────────────────────────┤
+│              Integration Tests                           │
+│  Full tick cycles with all phases                       │
+│  Money flow end-to-end (govt → bank → household → firm) │
+│  Policy-to-outcome chains (spending → employment)       │
+│  Multi-tick stability (120-tick runs)                   │
+├─────────────────────────────────────────────────────────┤
+│              Unit Tests                                  │
+│  Ledger, BalanceSheet, SfcChecker                       │
+│  Each agent type (Government, Household, Firm, Bank)    │
+│  PricingEngine, ProductionEngine, LaborMarket           │
+│  JsonDataProvider, DataValidator, data model loading    │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 9.3 Test Data Fixtures
+
+```
+tests/Simulation.Tests/
+├── TestData/
+│   ├── Minimal/          # 1 sector, 1 household class — bare minimum valid data
+│   │   ├── sectors.json
+│   │   ├── goods.json
+│   │   ├── households.json
+│   │   ├── firms.json
+│   │   ├── banks.json
+│   │   ├── government.json
+│   │   └── parameters.json
+│   ├── FullBase/         # Copy of data/base/ for integration tests
+│   ├── InvalidData/      # Malformed files for error handling tests
+│   │   ├── missing-fields.json
+│   │   ├── negative-values.json
+│   │   ├── invalid-types.json
+│   │   └── empty-file.json
+│   └── Scenarios/        # Specific economic states for targeted tests
+│       ├── high-inflation.json
+│       ├── high-unemployment.json
+│       └── steady-state.json
+```
+
+- **Minimal:** The smallest valid dataset. Used by most unit tests to keep tests fast and focused.
+- **FullBase:** A copy of the real `data/base/` directory. Used by integration tests and property-based tests. CI checks that this stays in sync with `data/base/`.
+- **InvalidData:** Intentionally malformed files. Used to verify that validation produces clear error messages.
+- **Scenarios:** Pre-configured economic states (e.g., economy already in high inflation). Used for targeted behavior tests.
+
+### 9.4 InMemoryDataProvider
+
+Implements `IDataProvider` for tests. Instead of reading JSON files from disk, tests register data objects directly in memory:
+
+```csharp
+var data = new InMemoryDataProvider();
+data.Register("economy/sectors", new SectorData { ... });
+data.Register("agents/households", new HouseholdData { ... });
+
+var sim = factory.Create(data, seed: 42);
+```
+
+This enables:
+- **Minimal data** for focused unit tests (only register what the test needs)
+- **Extreme values** for boundary tests (e.g., markup of 0, population of 1)
+- **Invalid data** for error handling tests
+- **No file system dependency** — tests run anywhere without data files on disk
+
+### 9.5 SimulationTestHarness
+
+A convenience class that wraps common test setup and assertion patterns:
+
+```csharp
+public class SimulationTestHarness
+{
+    // Construction
+    static SimulationTestHarness CreateMinimal();               // 1 sector, 1 class
+    static SimulationTestHarness CreateFromFixture(string name); // Load from TestData/
+    static SimulationTestHarness CreateFromData(IDataProvider provider, int? seed = null);
+
+    // Execution
+    void Tick(int count = 1);
+
+    // Assertions
+    void AssertSfcConsistent();
+    void AssertIndicatorInRange(string indicator, decimal min, decimal max);
+    void AssertNoNegativePrices();
+    void AssertEmploymentInBounds();
+
+    // Access
+    ISimulationState State { get; }
+    ILedger Ledger { get; }
+}
+```
+
+### 9.6 Test Naming Convention
+
+Tests follow the pattern: `[RequirementId]_[Scenario]_[ExpectedResult]`
+
+Examples:
+- `FrSim001_AfterGovernmentSpending_SfcIdentityHolds`
+- `FrPrc001_WageRiseMatchesProductivityGain_PriceUnchanged`
+- `FrBnk001_LoanCreated_DepositsAndLoansIncrease`
+- `FrMod001_MissingSectorField_ValidationErrorWithFieldName`

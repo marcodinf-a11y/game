@@ -305,8 +305,9 @@ An open source, single-player economic simulation game built on Modern Monetary 
 
 #### FR-MOD-001: Data-Driven Design
 - All game data must be loaded from external JSON files
-- No economic parameters, sector definitions, goods, or scenarios may be hardcoded
+- No economic parameters, sector definitions, goods, or scenarios may be hardcoded — not even as temporary defaults to be replaced later
 - The base game data must reside in `data/base/`
+- The data loading system (`IDataProvider`, `JsonDataProvider`, data model classes) must be among the first components implemented, before any agent or economic logic
 
 #### FR-MOD-002: Data Schema
 - All data files must conform to a defined schema
@@ -315,6 +316,33 @@ An open source, single-player economic simulation game built on Modern Monetary 
 #### FR-MOD-003: Base Game as Mod
 - The base game must load its data through the same system that mods will use
 - The data file format must be identical for base game and mods
+
+### 2.14 Testability Contract
+
+Every functional requirement group must be covered by automated tests. Tests follow the naming convention:
+
+```
+[RequirementId]_[Scenario]_[ExpectedResult]
+```
+
+Examples:
+- `FrSim001_AfterGovernmentSpending_SfcIdentityHolds`
+- `FrPrc001_WageRiseWithProductivityGain_NoPriceIncrease`
+- `FrMod001_MissingRequiredField_ProducesClearError`
+
+#### Test Coverage Mapping
+
+| FR Group | Unit Tests | Integration Tests | Property-Based Tests |
+|---|---|---|---|
+| FR-SIM (Simulation) | Ledger, SfcChecker, BalanceSheet | Full tick cycle, multi-tick SFC | SFC identity holds for all seeds |
+| FR-AGT (Agents) | Each agent type in isolation | Agent interactions per tick phase | — |
+| FR-PRC (Pricing) | PricingEngine, cost calculations | Price response to demand/cost changes | No negative prices for any input |
+| FR-LBR (Labor) | LaborMarket matching, wage posting | Hiring/unemployment dynamics | Employment rate in [0, 1] |
+| FR-BNK (Banking) | Loan creation, debt service, defaults | Money creation/destruction cycle | Money stock consistency |
+| FR-BND (Bonds) | Auction mechanics, interest payments | Bond lifecycle end-to-end | — |
+| FR-INV (Investment) | Capital depreciation, investment decisions | Capacity change over time | — |
+| FR-TIM (Time/Lags) | Policy queue, lag calculations | Policy effect after correct delay | — |
+| FR-MOD (Data/Modding) | JSON loading, validation, error handling | Simulation init from data files | — |
 
 ## 3. Non-Functional Requirements
 
@@ -345,6 +373,31 @@ An open source, single-player economic simulation game built on Modern Monetary 
 - Core economic model must have unit tests
 - SFC consistency must be verifiable via automated tests
 - Each agent type must be independently testable
+- Zero Godot dependencies enforced at the project level (`Simulation.csproj` must not reference Godot assemblies)
+- All agents receive dependencies via constructor injection (`IDataProvider`, `ILedger`)
+- An `InMemoryDataProvider` must exist for tests, allowing data to be registered in memory instead of read from disk
+- The simulation must be constructable and runnable headlessly (no UI, no Godot, pure C#)
+- All randomness must use a seeded `IRandom` interface for deterministic, reproducible tests
+
+#### NFR-CQA-003: Test-Driven Development Methodology
+- All simulation engine code must be developed using TDD (red-green-refactor cycle)
+- Every public method must have a corresponding test written before its implementation
+- Each FR-* requirement must be traceable to at least one automated test
+- Every bug fix must include a regression test that fails before the fix and passes after
+
+#### NFR-CQA-004: Test Coverage and Categories
+- Minimum 80% line coverage for the simulation engine
+- Three test categories:
+  - **Unit tests:** isolated component tests (single class, mocked dependencies)
+  - **Integration tests:** full tick cycles, money flow end-to-end, policy-to-outcome chains
+  - **Property-based tests:** SFC invariants hold for arbitrary inputs, no negative prices, employment rate in [0, 1]
+- A headless simulation test harness must support multi-year runs (100+ ticks) without Godot
+
+#### NFR-CQA-005: Data Validation Testing
+- JSON schema validation must run at load time for all data files
+- Tests must verify that all base game data files (`data/base/`) are valid and complete
+- Tests must verify that malformed data produces clear, actionable error messages
+- Test JSON fixtures must exist for each data type (minimal valid, full base copy, invalid/malformed, specific economic scenarios)
 
 ### 3.4 Extensibility
 
