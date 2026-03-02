@@ -75,9 +75,10 @@ This is the heart of the game. It contains all economic logic, agent behavior, a
 **Accounting System (SFC)**
 - Double-entry transaction recording
 - Balance sheet management for every agent/sector
-- Two-circuit ledger: reserves ledger + deposits ledger
-- Transaction validation (source and destination must exist, amounts must balance)
-- Consistency checks (run post-tick, verify all balances sum to zero)
+- Two-circuit ledger: every transaction is tagged with its money circuit (Reserves or Deposits). The ledger enforces circuit isolation: non-bank private agents (households, firms) may only transact in the Deposits circuit, Treasury and the central bank may only transact in the Reserves circuit, and commercial banks operate in both circuits (holding reserve accounts at the central bank and deposit accounts for customers).
+- Transaction validation (source and destination must exist, amounts must balance, circuit rules enforced)
+- Consistency checks (run post-tick, verify all balances sum to zero across both circuits)
+- Circuit isolation check (verify no illegal cross-circuit flows)
 - Transaction log for debugging and console inspection
 
 **Markets**
@@ -220,10 +221,17 @@ public interface IBalanceSheet
     decimal NetPosition { get; } // Assets - Liabilities
 }
 
+public enum MoneyCircuit
+{
+    Reserves,  // Central bank money — flows between Treasury, CB, bank reserve accounts
+    Deposits   // Commercial bank money — flows between bank deposit accounts, households, firms
+}
+
 public interface ITransaction
 {
     string Id { get; }
     int Tick { get; }
+    MoneyCircuit Circuit { get; }
     string FromAccount { get; }
     string ToAccount { get; }
     decimal Amount { get; }
@@ -233,10 +241,13 @@ public interface ITransaction
 
 public interface ILedger
 {
-    void RecordTransaction(string from, string to, decimal amount, string category, string description);
+    void RecordTransaction(MoneyCircuit circuit, string from, string to, decimal amount, string category, string description);
     IReadOnlyList<ITransaction> GetTransactions(int tick);
     IReadOnlyList<ITransaction> GetTransactions(string accountId);
-    bool CheckConsistency(); // Verify SFC
+    IReadOnlyList<ITransaction> GetTransactions(MoneyCircuit circuit, int tick);
+    bool CheckConsistency();       // Verify SFC across both circuits
+    bool CheckCircuitIsolation();  // Verify no illegal cross-circuit flows
+    decimal GetCircuitTotal(MoneyCircuit circuit);
 }
 ```
 
@@ -288,9 +299,9 @@ Game Controller
 Tick Engine
     │
     ├── 1. Government Phase
-    │   ├── Collect taxes → Ledger.RecordTransaction (deposits → reserves → treasury)
-    │   ├── Execute spending → Ledger.RecordTransaction (treasury → reserves → deposits)
-    │   ├── Pay bond interest → Ledger.RecordTransaction
+    │   ├── Collect taxes → Ledger.RecordTransaction (Deposits: taxpayer → bank) then (Reserves: bank → treasury)
+    │   ├── Execute spending → Ledger.RecordTransaction (Reserves: treasury → bank) then (Deposits: bank → recipient)
+    │   ├── Pay bond interest → Ledger.RecordTransaction (Reserves + Deposits)
     │   └── Bond auction → BondMarket.RunAuction()
     │
     ├── 2. Production Phase
@@ -313,6 +324,7 @@ Tick Engine
     └── 5. Accounting Phase
         ├── Balance sheets updated
         ├── SFC consistency check → Ledger.CheckConsistency()
+        ├── Circuit isolation check → Ledger.CheckCircuitIsolation()
         ├── Economic indicators calculated
         └── State snapshot published → Game Controller reads new state
 ```

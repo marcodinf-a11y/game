@@ -18,7 +18,7 @@ Findings are grouped by theme. Each finding cites specific requirement IDs (e.g.
 
 ## Critical Findings
 
-### C1. Observer Pattern vs. Polling — Unresolved UI Update Strategy
+### ~~C1. Observer Pattern vs. Polling — Unresolved UI Update Strategy~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -35,9 +35,11 @@ Findings are grouped by theme. Each finding cites specific requirement IDs (e.g.
 
 **Suggested resolution:** Pick one approach. Given that the simulation ticks discretely (monthly), a poll-per-tick model where the Game Controller reads state after each tick and pushes it to UI nodes is simpler and sufficient. Remove `ISimulationEvents` from the Architecture, or downgrade it to an optional optimization for the future. Update Architecture 6.3 to describe the actual update strategy.
 
+**Resolution:** Adopted the tick-and-read pattern. Removed `ISimulationEvents` from Architecture 6.3, replaced with tick-and-read flow diagram. Updated Section 3.1 to reference the new update strategy. See commit `40afa78`.
+
 ---
 
-### C2. ILedger Interface Does Not Support the Two Money Circuits
+### ~~C2. ILedger Interface Does Not Support the Two Money Circuits~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -49,6 +51,8 @@ Findings are grouped by theme. Each finding cites specific requirement IDs (e.g.
 **Why it matters:** FR-SIM-002 is the core MMT money-circuit requirement. If the interface treats all transactions identically, the two-circuit separation cannot be enforced or verified at the interface level. Tests cannot check circuit isolation. The SFC checker cannot validate circuit-specific invariants.
 
 **Suggested resolution:** Either add a `circuit` parameter to `RecordTransaction()`, or split the interface into `IReservesLedger` and `IDepositsLedger`, or use account naming conventions with a documented schema (e.g., accounts prefixed with `reserve:` or `deposit:`) and add circuit-aware query methods.
+
+**Resolution:** Added `MoneyCircuit` enum (Reserves, Deposits) to Section 3.4. `ITransaction` now carries a `Circuit` property. `ILedger.RecordTransaction` takes a `MoneyCircuit` parameter. Added `CheckCircuitIsolation()` and `GetCircuitTotal()` to `ILedger`. Updated Section 2.1 narrative to describe circuit enforcement rules (non-bank private agents → Deposits only, Treasury/CB → Reserves only, banks → both). Updated Section 4.1 tick data flow to show circuit tags on transactions and circuit isolation check in the Accounting Phase. Also addresses M6 (banks bridging both circuits).
 
 ---
 
