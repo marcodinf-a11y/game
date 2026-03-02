@@ -133,7 +133,7 @@ Godot scenes and nodes that render the game and handle player input. These nodes
 
 ### 3.1 Simulation State (Read)
 
-The simulation exposes a read-only state object that the UI can query:
+The simulation exposes a read-only state object that the UI reads after each tick (see Section 6.3 for the update flow):
 
 ```csharp
 public interface ISimulationState
@@ -522,19 +522,32 @@ All player actions go through a command interface rather than directly mutating 
 - Makes it easy to record/replay sessions
 - Enables the console to use the same commands as the UI
 
-### 6.3 Observer Pattern for UI Updates
+### 6.3 Tick-and-Read UI Update Pattern
 
-The simulation publishes state changes. UI nodes subscribe to changes they care about. This avoids the UI polling the simulation and keeps the coupling one-directional.
+After each simulation tick, the Game Controller notifies all UI nodes that new state is available. UI nodes then read the values they need from `ISimulationState`.
 
-```csharp
-public interface ISimulationEvents
-{
-    event Action<int> OnTickCompleted;            // tick number
-    event Action<string, decimal> OnIndicatorChanged; // indicator name, new value
-    event Action<ITransaction> OnTransactionRecorded;
-    event Action<string> OnPolicyEnacted;         // policy description
-}
 ```
+Game Controller
+    │
+    ├── calls Tick() on Simulation Engine
+    ├── Simulation returns (state is now updated)
+    │
+    └── emits TickCompleted signal (Godot signal)
+            │
+            ├── ChartPanel reads Indicators, appends data points
+            ├── BalanceSheetPanel reads AllBalanceSheets, refreshes table
+            ├── HUD reads CurrentMonth/CurrentYear, updates label
+            ├── PolicyPanel reads pending policy state, updates indicators
+            └── ScenarioUI reads scenario progress, updates objectives
+```
+
+This works because:
+- The simulation is discrete (monthly ticks), not continuous — there is exactly one state change per frame at most.
+- `ISimulationState` already provides all the data UI nodes need.
+- A single Godot signal is trivial to implement and maintain.
+- Coupling is one-directional: UI nodes depend on `ISimulationState`, the simulation knows nothing about the UI.
+
+No `ISimulationEvents` interface is needed in the simulation engine. The notification mechanism lives entirely in the Godot layer as a standard Godot signal on `GameController`.
 
 ### 6.4 Data-Driven Agent Configuration
 
