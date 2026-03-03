@@ -25,7 +25,7 @@ A Victoria 3-inspired real-time economic simulation where the underlying economi
 
 ## In-Game Console
 
-A full-power command line console (like Paradox games) available in all builds. Query any variable, manipulate the economy, run scripts, inspect balance sheets. Operates through the SFC model to maintain accounting consistency. See [docs/CONSOLE.md](docs/CONSOLE.md).
+A full-power command line console (like Paradox games) available in all builds. Query any variable, manipulate the economy, run scripts, inspect balance sheets. Operates through the SFC model to maintain accounting consistency. See [docs/technical/CONSOLE.md](docs/technical/CONSOLE.md).
 
 ## Modding
 
@@ -35,11 +35,11 @@ The game is designed for modding from day one. All game data lives in external J
 - **Plugin mods** — extend game mechanics, add new agent types, custom AI, new UI panels via C# plugins.
 - **Combinable** — multiple mods with dependency resolution and load ordering.
 
-See [docs/MODDING.md](docs/MODDING.md) for the full modding architecture.
+See [docs/technical/MODDING.md](docs/technical/MODDING.md) for the full modding architecture.
 
 ## Current Status
 
-**Requirements gathering phase.** See [docs/DESIGN.md](docs/DESIGN.md) for the game design document, [docs/MVP.md](docs/MVP.md) for the MVP scope, and [docs/ECONOMIC-MODEL.md](docs/ECONOMIC-MODEL.md) for the simulation model.
+**Requirements gathering phase.** See [docs/design/GAME-DESIGN.md](docs/design/GAME-DESIGN.md) for the game design document, [docs/requirements/PRD.md](docs/requirements/PRD.md) for requirements and MVP scope, and [docs/design/ECONOMIC-MODEL.md](docs/design/ECONOMIC-MODEL.md) for the simulation model.
 
 ## License
 

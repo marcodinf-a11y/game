@@ -423,25 +423,45 @@ Examples:
 - The relationship between policy changes and economic outcomes must be visible through the UI (charts, pipeline indicators)
 - The player must never be confused about what their policy changes are doing
 
-## 4. Out of Scope (MVP)
+## 4. MVP Definition of Done
+
+The MVP is complete when:
+
+1. **SFC accounting works** — all transactions are double-entry; balances always sum to zero
+2. **Two money circuits visible** — reserves and deposits tracked and displayable
+3. **Policy controls work** — player can adjust spending, allocation, and tax rate
+4. **Money circuit flows** — government spending creates currency; taxation destroys it
+5. **Production runs** — firms produce based on profit-driven decisions; households consume by needs hierarchy
+6. **Labor market functions** — firms post wages, households accept/reject, unemployment emerges naturally
+7. **Bank lending works** — banks create money via loans; repayments destroy it
+8. **Bond auctions work** — government issues bonds; banks/households bid; CB backstops
+9. **Inflation responds correctly** — driven by unit labor costs and demand pressure, not raw spending
+10. **Charts update live** — all key indicators chart in real-time
+11. **Scenario playable** — one scenario with win/lose conditions completable
+12. **Sandbox works** — free experimentation mode with full dashboard
+13. **Pause and speed controls work** — player can control simulation flow
+
+## 5. Out of Scope (MVP)
 
 The following are explicitly not part of the MVP:
 
-- Job Guarantee program
-- Foreign sector / trade / sectoral balances (3-sector)
-- Multiple economies / AI nations
-- Multiple provinces / geographic map gameplay
-- Individual agent simulation (population groups only)
-- Monetary policy (CB rate changes)
-- Multiple tax types
-- Bond secondary market
-- Multiple competing banks
-- Bank insolvency / systemic crisis mechanics
-- Collective bargaining / wage contracts
-- 5+ household classes or continuous income spectrum
-- Mod loader / mod management UI
-- Plugin API for code mods
-- Multiplayer
-- Tutorial / guided onboarding
-- Sound / music
-- Localization
+| Feature | Reason for deferral |
+|---|---|
+| Job Guarantee program | Build basic employment dynamics first |
+| Foreign sector / trade / sectoral balances (3-sector) | Requires foreign sector |
+| Multiple economies / AI nations | Focus on domestic dynamics first |
+| Multiple provinces / geographic map gameplay | One province proves the economic model |
+| Individual agent simulation (population groups only) | Population groups sufficient for MVP |
+| Monetary policy (CB rate changes) | CB rate fixed at 0 in MVP |
+| Multiple tax types | Single income tax; progressive/sales/wealth taxes later |
+| Bond secondary market | No resale in MVP |
+| Multiple competing banks | Single aggregate bank in MVP |
+| Bank insolvency / systemic crisis mechanics | Defaults tracked but no systemic crisis modeling |
+| Collective bargaining / wage contracts | Simple wage posting only |
+| 5+ household classes or continuous income spectrum | 3 classes in MVP; continuous spectrum later |
+| Mod loader / mod management UI | Data-driven JSON modding sufficient for MVP |
+| Plugin API for code mods | Data-driven JSON modding sufficient for MVP |
+| Multiplayer | Single-player focus for MVP |
+| Tutorial / guided onboarding | Sandbox and scenario modes provide sufficient onboarding |
+| Sound / music | Gameplay mechanics first; polish later |
+| Localization | English only for MVP |

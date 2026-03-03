@@ -165,6 +165,6 @@ Chosen for:
 
 - Simulation engine should be decoupled from rendering (testable independently)
 - Economic model should be modular (easy to add new sectors, policies, mechanics)
-- **Data-driven from day one** — all game data loaded from JSON files, never hardcoded. See [MODDING.md](MODDING.md).
+- **Data-driven from day one** — all game data loaded from JSON files, never hardcoded. See [MODDING.md](../technical/MODDING.md).
 - **Mod support from day one** — the base game is structured like a mod. Two-tier modding: data overrides (casual) and plugin API (advanced). Multiple mods combinable with dependency resolution.
 - Save/load system for game state

@@ -502,13 +502,20 @@ game/
 │           └── ui.json
 │
 ├── docs/                             # Project documentation
-│   ├── DESIGN.md
-│   ├── ECONOMIC-MODEL.md
-│   ├── MVP.md
-│   ├── PRD.md
-│   ├── ARCHITECTURE.md
-│   ├── MODDING.md
-│   └── CONSOLE.md
+│   ├── README.md
+│   ├── design/
+│   │   ├── GAME-DESIGN.md
+│   │   └── ECONOMIC-MODEL.md
+│   ├── requirements/
+│   │   └── PRD.md
+│   ├── technical/
+│   │   ├── ARCHITECTURE.md
+│   │   ├── IMPLEMENTATION-PLAN.md
+│   │   ├── CONSOLE.md
+│   │   └── MODDING.md
+│   └── reviews/
+│       ├── consistency.md
+│       └── mmt-accuracy.md
 │
 └── mods/                             # Mod directory (empty in base game)
     └── .gitkeep
