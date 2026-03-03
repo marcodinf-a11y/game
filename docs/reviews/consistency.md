@@ -56,7 +56,7 @@ Findings are grouped by theme. Each finding cites specific requirement IDs (e.g.
 
 ---
 
-### C3. ISimulationFactory.Create() Returns Read-Only Interface Only
+### ~~C3. ISimulationFactory.Create() Returns Read-Only Interface Only~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -77,6 +77,8 @@ This returns `ISimulationState`, which is read-only. But to actually run the sim
 - Return a `Simulation` class that implements both `ISimulationState` and `ISimulationCommands`
 - Return a tuple or wrapper: `(ISimulationState State, ISimulationCommands Commands)`
 - Define an `ISimulation` interface that extends both
+
+**Resolution:** Introduced `ISimulation` composite interface extending both `ISimulationState` and `ISimulationCommands`. Updated `ISimulationFactory.Create()` return type to `ISimulation` in Section 3.7. Updated Section 2.2 (Game Controller) to clarify it holds `ISimulation` and exposes `ISimulationState` to UI. Updated Section 9.5 (test harness) to note it wraps `ISimulation`.
 
 ---
 
@@ -269,6 +271,42 @@ But commercial banks are private sector entities that necessarily interact with 
 
 ---
 
+### M10. QueryByPath Interface Completely Unspecified
+
+| Aspect | Detail |
+|---|---|
+| Documents | ARCHITECTURE (3.1, 6.6), IMPLEMENTATION-PLAN (Phase 8, Phase 12) |
+| Requirements | FR-CON-002, FR-UI-002 |
+
+**The problem:** `ISimulationState.QueryByPath(string path)` returns `object`. Architecture 6.6 describes path-based state access ("all simulation state is queryable by a dot-separated path, e.g., `firms.agriculture.price`") and lists three consumers: the console, the chart data binding system, and future mod scripts. But the valid path space is never defined anywhere.
+
+There is no schema or registry of valid paths. There is no specification of what types the returned `object` can be. There is no documented behavior for invalid paths (return null? throw?). The Implementation Plan Phase 8 test 11 (`FrSim003_QueryByPath_ReturnsCorrectValues`) tests this feature but with no specification of what paths should exist, the test cannot be written.
+
+**Why it matters:** Three independent features depend on path queries working correctly. Without a path schema, each feature must guess what paths exist and hope they match the implementation. Console commands like `query firms.agriculture.price` will fail silently or throw if the path format doesn't match the implementation's conventions.
+
+**Suggested resolution:** Add a path schema specification to Architecture 6.6. Define the root paths (e.g., `government.*`, `banks.*`, `firms.<sector>.*`, `households.<class>.*`, `indicators.*`), their leaf properties, and the return types. This can be a table or a tree listing.
+
+---
+
+### M11. No Architecture for Hierarchical Consumption
+
+| Aspect | Detail |
+|---|---|
+| Documents | PRD (FR-AGT-004), ARCHITECTURE (2.1, 4.1), IMPLEMENTATION-PLAN (Phase 4) |
+| Requirements | FR-AGT-004 |
+
+**The problem:** FR-AGT-004 requires households to "consume according to hierarchical needs: survival → shelter → comfort → luxury." This is a core behavioral mechanic — it determines how income flows through the goods market and which sectors receive demand at different income levels.
+
+The Architecture has no specification for this mechanism. There is no description of how goods map to need levels, how the hierarchy is evaluated (does a household fully satisfy survival before spending on shelter, or is there a blending function?), or how it interacts with the `GoodsMarket`. The tick data flow (4.1, Market Phase) says "Households purchase goods (hierarchical needs)" but provides no further detail. The `IHouseholdClass` interface (3.3) has `ConsumptionSpending` but no need-level breakdown.
+
+Implementation Plan Phase 4 tests this (test 12: `FrSim003_HouseholdsBuySurvivalBeforeComfort`, test 13: `FrAgt004_LowIncomeHouseholds_HigherShareOnNecessities`) but the implementation in the GREEN step ("hierarchical needs purchasing, price elasticity, inventory sales") must invent the design.
+
+**Why it matters:** This is comparable to C6 (inflation buffers) — a core mechanism referenced across documents but with no architectural specification. The need hierarchy determines consumption patterns, which determine demand, which determines production, pricing, and employment. Getting this wrong cascades through the entire model.
+
+**Suggested resolution:** Add a hierarchical consumption component to the Architecture. Specify: how goods map to need levels (data-driven via `IDataProvider`), the evaluation order (strict priority vs. blending), how price elasticity varies by need level (FR-AGT-004), and how unmet needs affect household behavior.
+
+---
+
 ### M9. Missing Project Structure Files
 
 | Aspect | Detail |
@@ -402,6 +440,43 @@ Similarly, `IDataValidator.cs` and `DataValidator.cs` are described in Architect
 
 ---
 
+### L10. SpendingAllocation Type Referenced But Never Defined
+
+| Aspect | Detail |
+|---|---|
+| Documents | ARCHITECTURE (3.2) |
+| Requirements | FR-CTL-001 |
+
+`ISimulationCommands.SetSpendingAllocation(SpendingAllocation allocation)` references a `SpendingAllocation` type that is never defined in the Architecture. Is it a struct, class, or enum? What fields does it have? FR-CTL-001 requires allocation across infrastructure, public services, and direct transfers — so presumably it has three fields that sum to 100%. But this is left implicit.
+
+---
+
+### L11. Single Aggregate Bank vs. Plural Interfaces
+
+| Aspect | Detail |
+|---|---|
+| Documents | PRD (Section 5), ARCHITECTURE (3.1, 3.3) |
+| Requirements | FR-AGT-003 |
+
+The out-of-scope table says "multiple competing banks" is deferred, implying the MVP has one aggregate bank. But the Architecture uses plural language throughout: the `ISimulationState` property is `IBankingState Banks` (plural), FR-AGT-003 uses "commercial banks must hold deposits," and the Architecture 2.1 narrative says "CommercialBank" (singular agent name) while the interface assumes a plural. L8 flags this as a terminology issue, but the deeper question is whether the MVP models one bank entity or multiple — this affects Phase 3 agent creation (how many bank agents to instantiate) and Phase 5/6 behavior (do banks compete for deposits or loans, or is there one aggregate?).
+
+**Suggested resolution:** Add an explicit statement to the Architecture: "The MVP models a single aggregate commercial bank. The `Banks` property and plural references are forward-compatible naming for post-MVP multi-bank support." Or, if multiple banks are intended for MVP, remove "multiple competing banks" from the out-of-scope list.
+
+---
+
+### L12. No Error Recovery Strategy for SFC Failures
+
+| Aspect | Detail |
+|---|---|
+| Documents | PRD (NFR-DTA-001), ARCHITECTURE (4.1) |
+| Requirements | NFR-DTA-001 |
+
+NFR-DTA-001 states: "If an imbalance is detected, it must be logged and flagged as a bug." The Architecture runs `Ledger.CheckConsistency()` in the Accounting Phase of each tick (Section 4.1). But neither document specifies what happens to the simulation after a failure is detected. Does the simulation halt? Continue with the imbalance? Roll back the tick? Throw an exception that propagates to the Game Controller?
+
+This matters because the Game Controller needs to know how to handle the failure — display an error to the player, crash gracefully, or silently log. The test harness (`AssertSfcConsistent()`) implies it throws, but the production behavior is unspecified.
+
+---
+
 ### L9. Phase 6 Dependency on Phase 5 Overstated
 
 | Aspect | Detail |
@@ -420,7 +495,7 @@ This means Phases 5 and 6 could potentially be parallelized or reordered.
 
 These requirement groups have consistent coverage in the PRD, Architecture, and Implementation Plan with no gaps:
 
-FR-SIM-001 (SFC accounting), FR-SIM-003 (tick processing), FR-AGT-002 (central bank), FR-AGT-003 (commercial banks), FR-AGT-005 (firms), FR-PRC-001 (cost-plus pricing), FR-LBR-003 (unemployment), FR-BNK-001 (endogenous money creation), FR-BNK-002 (creditworthiness), FR-BNK-003 (loan types), FR-BNK-004 (debt service/default), FR-BND-002 (bond properties), FR-CTL-001 (policy levers), FR-CTL-002 (time controls), FR-GMD-001 (sandbox), FR-GMD-002 (scenario), FR-MOD-001 (data-driven design), FR-MOD-002 (data schema), FR-MOD-003 (base game as mod), FR-CON-001 through FR-CON-006 (console).
+FR-SIM-001 (SFC accounting), FR-SIM-003 (tick processing), FR-AGT-002 (central bank), FR-AGT-005 (firms), FR-PRC-001 (cost-plus pricing), FR-LBR-003 (unemployment), FR-BNK-001 (endogenous money creation), FR-BNK-002 (creditworthiness), FR-BNK-003 (loan types), FR-BNK-004 (debt service/default), FR-BND-002 (bond properties), FR-CTL-002 (time controls), FR-GMD-001 (sandbox), FR-GMD-002 (scenario), FR-MOD-001 (data-driven design), FR-MOD-002 (data schema), FR-MOD-003 (base game as mod), FR-CON-001 (console access), FR-CON-003 through FR-CON-006 (console).
 
 ### Requirements With Gaps
 
@@ -429,7 +504,8 @@ FR-SIM-001 (SFC accounting), FR-SIM-003 (tick processing), FR-AGT-002 (central b
 | FR-SIM-002 | C2 (ILedger interface), M6 (oversimplified circuit access) |
 | FR-SIM-004 | M3 (IEconomicIndicators undefined), M7 (bond yields), L2 (missing indicator tests) |
 | FR-AGT-001 | M3 (IGovernmentState undefined) |
-| FR-AGT-004 | L2 (missing debt capacity and elasticity tests) |
+| FR-AGT-003 | L11 (single vs. plural bank ambiguity) |
+| FR-AGT-004 | M11 (no architecture for hierarchical consumption), L2 (missing debt capacity and elasticity tests) |
 | FR-PRC-002 | C6 (no architecture, missing tests for buffer 3) |
 | FR-PRC-003 | L2 (sector-specific price tracking untested) |
 | FR-LBR-001 | L2 (wage stickiness and determinants untested) |
@@ -440,4 +516,7 @@ FR-SIM-001 (SFC accounting), FR-SIM-003 (tick processing), FR-AGT-002 (central b
 | FR-TIM-001 | C4 (no architecture component), L2 (lag ranges untested) |
 | FR-TIM-002 | C4 (no architecture component), L2 (most lag types untested) |
 | FR-TIM-003 | C4 (no data source for UI) |
+| FR-CTL-001 | L10 (SpendingAllocation type undefined) |
+| FR-CON-002 | M10 (QueryByPath path schema unspecified) |
 | FR-UI-007 | C4 (no data source for pipeline display) |
+| NFR-DTA-001 | L12 (no error recovery strategy for SFC failures) |

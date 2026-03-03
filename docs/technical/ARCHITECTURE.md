@@ -99,7 +99,7 @@ A thin Godot node that bridges the simulation engine and the UI. This is the onl
 **Responsibilities:**
 - Initialize the simulation engine with loaded data
 - Advance the simulation (call tick) based on game speed and pause state
-- Expose simulation state to UI nodes (read-only)
+- Hold the `ISimulation` reference; expose `ISimulationState` to UI nodes (read-only)
 - Route player commands (policy changes) from UI to simulation
 - Route console commands to simulation
 - Manage game modes (sandbox, scenario) and win/lose detection
@@ -275,12 +275,20 @@ public interface IDataValidator
 
 Validates data at load time. Returns structured errors with file path, field name, and human-readable message. Used by both the game (fail-fast on bad data) and tests (verify error messages for malformed fixtures).
 
-### 3.7 Simulation Factory Interface
+### 3.7 Simulation Composite and Factory
+
+The simulation exposes separate read (`ISimulationState`, Section 3.1) and write (`ISimulationCommands`, Section 3.2) interfaces. A composite interface combines both for consumers that need full access:
+
+```csharp
+public interface ISimulation : ISimulationState, ISimulationCommands { }
+```
+
+The Game Controller and test harness hold an `ISimulation` reference. UI nodes receive only `ISimulationState` (read-only access).
 
 ```csharp
 public interface ISimulationFactory
 {
-    ISimulationState Create(IDataProvider dataProvider, int? seed = null);
+    ISimulation Create(IDataProvider dataProvider, int? seed = null);
 }
 ```
 
@@ -749,6 +757,8 @@ public class SimulationTestHarness
     ILedger Ledger { get; }
 }
 ```
+
+The harness wraps an `ISimulation` instance internally. `State` delegates to `ISimulationState`; `Tick()` delegates to `ISimulationCommands`.
 
 ### 9.6 Test Naming Convention
 
