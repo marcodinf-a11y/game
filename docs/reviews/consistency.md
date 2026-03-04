@@ -131,7 +131,7 @@ The Architecture has no investment component. There is no `InvestmentEngine.cs` 
 
 ---
 
-### C6. Three Inflation Buffers Have No Architecture Component
+### ~~C6. Three Inflation Buffers Have No Architecture Component~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -153,6 +153,8 @@ The Architecture mentions `PricingEngine.cs` and cost-plus markup pricing but pr
 **Suggested resolution:** Extend the `PricingEngine` architecture to explicitly include the three-buffer check. Add tests to the Implementation Plan:
 - `FrPrc002_CostRiseWithMarginSlack_FirmAbsorbsViaSmallerMarkup`
 - `FrPrc002_AllThreeBuffersExhausted_InflationOccurs`
+
+**Resolution:** Added `IPricingEngine` interface with `SetPrices()` method and full three-buffer narrative to Architecture Section 3.10. Added `CurrentMarkup` and `MinimumMarkup` properties to `IFirm` (Section 3.3). Updated tick data flow (Section 4.1): annotated Production Phase with buffer 2 note, expanded Market Phase pricing step to show all three buffers and residual pressure flow. Added `PricingData.cs` to project structure Data/Models/ (Section 5). Added `IPricingEngine` to injectable dependencies (Section 6.5). Added three buffer tests to Implementation Plan Phase 4 RED section (tests 12-14: margin absorption, residual pass-through, all-three-exhausted). Updated Phase 4 GREEN step 3 to reference Architecture §3.10 three-buffer logic. Added progressive buffer exhaustion integration test to Phase 8 RED section (test 10).
 
 ---
 
@@ -510,7 +512,7 @@ FR-SIM-001 (SFC accounting), FR-SIM-003 (tick processing), FR-AGT-002 (central b
 | FR-AGT-001 | M3 (IGovernmentState undefined) |
 | FR-AGT-003 | L11 (single vs. plural bank ambiguity) |
 | FR-AGT-004 | M11 (no architecture for hierarchical consumption), L2 (missing debt capacity and elasticity tests) |
-| FR-PRC-002 | C6 (no architecture, missing tests for buffer 3) |
+| FR-PRC-002 | ~~C6 (no architecture, missing tests for buffer 3)~~ ✅ |
 | FR-PRC-003 | L2 (sector-specific price tracking untested) |
 | FR-LBR-001 | L2 (wage stickiness and determinants untested) |
 | FR-LBR-002 | L2 (cross-sector mobility untested) |

@@ -245,17 +245,22 @@ Phase 15: Balancing & Polish
 9. `FrPrc001_DemandBelowCapacity_MarkupDecreases`
 10. `FrPrc002_WageRiseMatchesProductivityGain_PriceUnchanged`
 11. `FrPrc002_IdleCapacity_SpendingIncreaseRaisesOutputNotPrices`
-12. `FrSim003_HouseholdsBuySurvivalBeforeComfort`
-13. `FrAgt004_LowIncomeHouseholds_HigherShareOnNecessities`
-14. `FrSim001_AllPurchases_RecordedAsLedgerTransactions`
-15. `FrSim001_AfterFullMarketCycle_SfcCheckPasses`
-16. `FrMod001_ChangedMarkupInData_ProducesHigherPrices`
-17. `FrMod001_ChangedNeedsHierarchy_ChangesConsumptionPattern`
+12. `FrPrc002_CostRiseWithMarginSlack_FirmAbsorbsViaSmallerMarkup`
+13. `FrPrc002_CostRiseExceedsMarginSlack_PriceRisesByResidual`
+14. `FrPrc002_AllThreeBuffersExhausted_InflationOccurs`
+15. `FrSim003_HouseholdsBuySurvivalBeforeComfort`
+16. `FrAgt004_LowIncomeHouseholds_HigherShareOnNecessities`
+17. `FrSim001_AllPurchases_RecordedAsLedgerTransactions`
+18. `FrSim001_AfterFullMarketCycle_SfcCheckPasses`
+19. `FrMod001_ChangedMarkupInData_ProducesHigherPrices`
+20. `FrMod001_ChangedNeedsHierarchy_ChangesConsumptionPattern`
 
 **GREEN — implement to make tests pass:**
 1. Implement `LaborMarket` — job posting, matching, employment tracking (parameters from `IDataProvider`)
 2. Implement `ProductionEngine` — demand estimation, input checking, production (parameters from `IDataProvider`)
-3. Implement `PricingEngine` — unit labor cost, unit material cost, markup with demand adjustment (markup rates from `IDataProvider`)
+3. Implement `PricingEngine` — unit labor cost, unit material cost, markup with demand
+   adjustment, three-buffer inflation logic per Architecture §3.10 (markup rates, minimum
+   markup, and capacity thresholds from `IDataProvider`)
 4. Implement `GoodsMarket` — disposable income, hierarchical needs purchasing, price elasticity, inventory sales (needs hierarchy from `IDataProvider`)
 5. Wire all transactions through the Ledger
 
@@ -394,19 +399,20 @@ Phase 15: Balancing & Polish
 7. `FrSim001_Taxation_DecreasesPrivateSectorBalance`
 8. `FrPrc002_SpendingIntoSlack_IncreasesOutputNotPrices`
 9. `FrPrc002_SpendingBeyondCapacity_CausesInflation`
-10. `FrLbr003_InsufficientSpending_CausesUnemployment`
-11. `FrSim003_QueryByPath_ReturnsCorrectValues`
-12. `FrCtl001_SetSpendingLevel_AcceptedAndQueued`
-13. `FrCtl001_SetTaxRate_AcceptedAndQueued`
+10. `FrPrc002_ProgressiveBufferExhaustion_InflationEmergesGradually`
+11. `FrLbr003_InsufficientSpending_CausesUnemployment`
+12. `FrSim003_QueryByPath_ReturnsCorrectValues`
+13. `FrCtl001_SetSpendingLevel_AcceptedAndQueued`
+14. `FrCtl001_SetTaxRate_AcceptedAndQueued`
 
 **Property-based tests:**
-14. `Property_AnySeedAnyPolicySequence_SfcHoldsEveryTick`
-15. `Property_AnyValidConfig_NoNegativePrices`
-16. `Property_AnyValidConfig_EmploymentRateInZeroToOne`
-17. `Property_AnyValidConfig_MoneyStockConsistent`
+15. `Property_AnySeedAnyPolicySequence_SfcHoldsEveryTick`
+16. `Property_AnyValidConfig_NoNegativePrices`
+17. `Property_AnyValidConfig_EmploymentRateInZeroToOne`
+18. `Property_AnyValidConfig_MoneyStockConsistent`
 
 **Integration test:**
-18. `Integration_120TickSimulation_SfcConsistentEveryTick_SensibleDynamics`
+19. `Integration_120TickSimulation_SfcConsistentEveryTick_SensibleDynamics`
 
 **GREEN — implement to make tests pass:**
 1. Implement `TickEngine` — orchestrate phases in order: Government → Production → Market → Financial → Accounting

@@ -207,6 +207,8 @@ public interface IFirm : IAgent
     decimal CapitalStock { get; }        // Current private capital level
     decimal DepreciationRate { get; }    // Sector-specific, from IDataProvider
     decimal InvestmentDemand { get; }    // Calculated each tick from capacity gap
+    decimal CurrentMarkup { get; }     // Current markup rate (e.g. 0.20 = 20%)
+    decimal MinimumMarkup { get; }     // Floor for margin compression (from IDataProvider, per sector)
 }
 
 public interface IHouseholdClass : IAgent
@@ -389,6 +391,47 @@ public interface IInvestmentEngine
 }
 ```
 
+### 3.10 Pricing Engine
+
+The `PricingEngine` implements FR-PRC-002's three-buffer inflation model — the central mechanism distinguishing MMT's view of inflation from mainstream models. Inflation only occurs when all three buffers are exhausted.
+
+```csharp
+public interface IPricingEngine
+{
+    /// Sets prices for all firms using cost-plus markup with three-buffer inflation logic.
+    /// Buffer 1 (productivity): Emergent from ULC formula — if productivity rises with wages,
+    ///   ULC stays flat and no price pressure exists. No pricing logic needed; this is a
+    ///   production-side outcome.
+    /// Buffer 2 (demand slack): Markup only increases when capacity utilization exceeds a
+    ///   sector-specific threshold. Below that threshold, increased spending raises output,
+    ///   not prices (firms produce more rather than charge more).
+    /// Buffer 3 (margin compression): When input costs rise, firms first compress their markup
+    ///   toward MinimumMarkup before passing cost increases to prices. This absorbs cost shocks
+    ///   up to the margin slack available.
+    /// Residual: Only cost increases that survive all three buffers flow through to price changes.
+    /// Called during Market Phase before household purchasing.
+    void SetPrices(ILedger ledger);
+}
+```
+
+**Three-buffer mechanism in detail:**
+
+1. **Buffer 1 — Productivity absorbs wage increases:** This buffer is emergent, not coded in the pricing engine. Unit labor cost (ULC) = total wages / total output. If productivity growth matches wage growth, ULC is flat and there is no cost pressure to pass through. The `PricingEngine` simply computes ULC; the buffer is a mathematical consequence of the production system.
+
+2. **Buffer 2 — Demand slack absorbs spending increases:** When capacity utilization is below `CapacityThreshold` (per sector, from `IDataProvider`), increased demand is met by increasing output rather than raising markup. The markup adjustment only activates when utilization exceeds the threshold. Below it, spending increases raise real output, not prices.
+
+3. **Buffer 3 — Margin compression absorbs cost increases:** When input costs (ULC + unit material cost) rise, firms first reduce their `CurrentMarkup` toward `MinimumMarkup` before raising prices. The absorbable amount equals `CurrentMarkup - MinimumMarkup`. Only the residual cost increase — the portion exceeding available margin slack — passes through to a price increase.
+
+**"All three exhausted" condition:** Inflation occurs when (a) productivity has not kept pace with wages (ULC is rising), AND (b) the economy is operating above the capacity threshold (no output slack), AND (c) the firm's markup has already been compressed to `MinimumMarkup` (no margin slack). Only then does remaining cost pressure flow through as a price increase.
+
+**Data-driven parameters** (per sector, loaded from `IDataProvider`):
+- `BaseMarkup` — starting markup rate for the sector
+- `MinimumMarkup` — floor below which markup cannot be compressed
+- `MarkupAdjustmentSpeed` — how quickly markup adjusts per tick (FR-TIM-002 behavioral lag)
+- `CapacityThreshold` — utilization level above which demand pressure raises markup
+
+**Phase:** Market Phase (before household purchasing). See Section 4.1 tick data flow.
+
 Investment logic is split across three existing tick phases rather than adding a sixth phase. Public investment reuses `IPolicyPipeline` for lag effects — infrastructure spending enters the pipeline with a 6-12 tick lag (FR-TIM-001) and boosts capacity when it matures; public services spending enters with a 12-24 tick lag and boosts productivity. Private investment creates inter-sector demand: when firms decide to expand, they purchase capital goods from the manufacturing sector, generating demand and transactions in that sector. All private investment transactions use `MoneyCircuit.Deposits`, funded from retained profits or bank credit (Phase 5 lending).
 
 ## 4. Data Flow
@@ -415,12 +458,18 @@ Tick Engine
     │   ├── Evaluate firm investment → InvestmentEngine.ProcessPrivateInvestment()
     │   ├── Firms estimate demand
     │   ├── Firms set production targets
+    │   │   └── (Production targets increase up to available capacity,
+    │   │        absorbing demand as output growth — FR-PRC-002 buffer 2)
     │   ├── Firms post wages → LaborMarket.PostJobs()
     │   ├── Households accept jobs → LaborMarket.MatchJobs()
     │   └── Production occurs → Firms produce output
     │
     ├── 3. Market Phase
-    │   ├── Firms set prices (cost-plus markup)
+    │   ├── Firms set prices → PricingEngine.SetPrices()
+    │   │   ├── ULC computed (buffer 1: if productivity matched wages, ULC flat)
+    │   │   ├── Markup adjusted for demand (buffer 2: no increase if slack exists)
+    │   │   ├── Cost increases absorbed by margin compression (buffer 3: markup → min)
+    │   │   └── Residual pressure → price change
     │   ├── Households purchase goods (hierarchical needs)
     │   └── Transactions recorded → Ledger.RecordTransaction
     │
@@ -530,6 +579,7 @@ game/
 │   │           ├── HouseholdData.cs
 │   │           ├── GoodsData.cs
 │   │           ├── InvestmentData.cs
+│   │           ├── PricingData.cs     # Per-sector markup parameters and thresholds
 │   │           └── ScenarioData.cs
 │   │
 │   └── Game/                         # Godot project
@@ -711,6 +761,7 @@ All simulation components receive their dependencies via constructor injection. 
 - `IRandom` — seeded random number generation for deterministic tests
 - `IPolicyPipeline` — policy change queuing and lag tracking (durations from `IDataProvider`)
 - `IInvestmentEngine` — public/private investment processing and capital depreciation (rates and thresholds from `IDataProvider`)
+- `IPricingEngine` — cost-plus pricing with three-buffer inflation logic (markup parameters and capacity thresholds from `IDataProvider`)
 
 Example: a `Firm` receives `ILedger` and `IDataProvider` in its constructor. In production, these are the real implementations wired through `ISimulationFactory`. In tests, they are in-memory fakes that allow precise control over inputs and verification of outputs.
 
