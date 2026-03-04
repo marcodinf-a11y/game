@@ -290,7 +290,10 @@ public interface IEconomicIndicators
     IReadOnlyDictionary<string, decimal> UnitLaborCostsBySector { get; }
     decimal PrivateDebtLevel { get; }
     decimal BankReserves { get; }
-    /// Weighted average coupon rate across outstanding bonds (no secondary market in MVP; see M7).
+    /// Weighted average coupon rate across outstanding bonds (no secondary market in MVP).
+    /// Formula: Σ(bond.CouponRate × bond.FaceValue) / Σ(bond.FaceValue). Returns 0 when no bonds outstanding.
+    /// Pedagogically valuable: demonstrates the MMT insight that bond rates are policy-influenced
+    /// (CB buyer-of-last-resort per FR-BND-001 effectively sets a rate ceiling).
     decimal BondYields { get; }
     decimal SavingsRate { get; }
     decimal WageGrowth { get; }

@@ -263,7 +263,7 @@ But commercial banks are private sector entities that necessarily interact with 
 
 ---
 
-### M7. Bond Yields Indicator Requires Out-of-Scope Mechanics
+### ~~M7. Bond Yields Indicator Requires Out-of-Scope Mechanics~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -273,6 +273,8 @@ But commercial banks are private sector entities that necessarily interact with 
 **The problem:** FR-SIM-004 lists "bond yields" as a required indicator. But Section 4 (Out of Scope) explicitly excludes "bond secondary market." Without a secondary market, bond yields are identical to the coupon rate set at auction — making the "yield" indicator either redundant or misleading.
 
 **Suggested resolution:** Either define "bond yields" as the weighted average coupon rate across outstanding bonds (which is meaningful without a secondary market), or replace it with "average bond coupon rate" to avoid implying secondary market mechanics.
+
+**Resolution:** Defined "bond yields" as the weighted average coupon rate across outstanding bonds — the government's average cost of debt. Formula: `Σ(bond.CouponRate × bond.FaceValue) / Σ(bond.FaceValue)`, returning 0 when no bonds are outstanding. This is meaningful without a secondary market because auction demand (FR-BND-001) produces varying coupon rates across issuances, and the weighted average shifts as old bonds mature and new ones are issued. The indicator is also pedagogically valuable: it demonstrates the MMT insight that bond rates are policy-influenced, since the CB buyer-of-last-resort effectively sets a rate ceiling. Updated FR-SIM-004 bullet in the PRD to clarify the definition. Expanded `IEconomicIndicators.BondYields` doc comment in Architecture Section 3.3 with formula, zero-bonds edge case, and pedagogical note.
 
 ---
 
@@ -520,7 +522,7 @@ FR-SIM-001 (SFC accounting), FR-SIM-003 (tick processing), FR-AGT-002 (central b
 | Requirement | Issue(s) |
 |---|---|
 | FR-SIM-002 | ~~C2 (ILedger interface)~~ ✅, ~~M6 (oversimplified circuit access)~~ ✅ |
-| FR-SIM-004 | M3 (IEconomicIndicators undefined), M7 (bond yields), L2 (missing indicator tests) |
+| FR-SIM-004 | M3 (IEconomicIndicators undefined), ~~M7 (bond yields)~~ ✅, L2 (missing indicator tests) |
 | FR-AGT-001 | M3 (IGovernmentState undefined) |
 | FR-AGT-003 | L11 (single vs. plural bank ambiguity) |
 | FR-AGT-004 | M11 (no architecture for hierarchical consumption), L2 (missing debt capacity and elasticity tests) |

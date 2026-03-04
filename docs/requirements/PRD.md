@@ -57,7 +57,7 @@ An open source, single-player economic simulation game built on Modern Monetary 
   - Unit labor costs per sector
   - Private debt level
   - Bank reserves
-  - Bond yields
+  - Bond yields (weighted average coupon rate across outstanding bonds; no secondary market in MVP)
   - Savings rate
   - Wage growth
 
