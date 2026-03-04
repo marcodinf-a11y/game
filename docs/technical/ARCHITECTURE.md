@@ -105,10 +105,10 @@ A thin Godot node that bridges the simulation engine and the UI. This is the onl
 
 **Responsibilities:**
 - Initialize the simulation engine with loaded data
-- Advance the simulation (call tick) based on game speed and pause state
+- Implement `ITimeControl` — advance ticks, manage pause/resume state and speed (FR-CON-004)
 - Hold the `ISimulation` reference; expose `ISimulationState` to UI nodes (read-only)
 - Route player commands (policy changes) from UI to simulation
-- Route console commands to simulation
+- Expose `ISimulationState`, `ISimulationCommands`, and `ITimeControl` to console node
 - Manage game modes (sandbox, scenario) and win/lose detection
 - Handle save/load
 
@@ -434,6 +434,33 @@ public interface IPricingEngine
 
 Investment logic is split across three existing tick phases rather than adding a sixth phase. Public investment reuses `IPolicyPipeline` for lag effects — infrastructure spending enters the pipeline with a 6-12 tick lag (FR-TIM-001) and boosts capacity when it matures; public services spending enters with a 12-24 tick lag and boosts productivity. Private investment creates inter-sector demand: when firms decide to expand, they purchase capital goods from the manufacturing sector, generating demand and transactions in that sector. All private investment transactions use `MoneyCircuit.Deposits`, funded from retained profits or bank credit (Phase 5 lending).
 
+### 3.11 Time Control
+
+The console needs to issue time commands (FR-CON-004: `pause`, `resume`, `speed`, `tick`) but these are Game Controller concerns, not simulation engine concerns. Even `tick` must route through the Game Controller because the tick-and-read pattern (Section 6.3) requires emitting TickCompleted after each tick so UI nodes refresh. Calling `ISimulationCommands.Tick()` directly would bypass this signal.
+
+```csharp
+public interface ITimeControl
+{
+    /// Advance the simulation by one tick and notify UI (emits TickCompleted).
+    /// This is the game-level tick — use this from console and game loop.
+    /// Distinct from ISimulationCommands.Tick() which is the engine-level
+    /// operation (advances state only, no UI notification).
+    void Tick();
+    void Tick(int count);
+    void Pause();
+    void Resume();
+    bool IsPaused { get; }
+    int Speed { get; }
+    void SetSpeed(int multiplier);  // 1 = 1x, 2 = 2x, 5 = 5x
+}
+```
+
+Defined in the simulation layer as a pure interface (no Godot dependency). Implemented by the Game Controller in the Godot layer. The Game Controller's `Tick()` calls `ISimulation.Tick()` on the engine then emits the TickCompleted signal (Section 6.3). `Pause`/`Resume`/`SetSpeed` control the game loop timing.
+
+`ISimulationCommands` retains its own `Tick()` methods for engine-level access (tests, headless runs, Game Controller internals). `ITimeControl.Tick()` wraps them with UI notification. The console routes ALL time commands (FR-CON-004) through `ITimeControl`.
+
+`ITimeControl` is NOT part of the `ISimulation` composite — time control is a Game Controller concern, not a simulation engine concern. `ISimulation` is returned by `ISimulationFactory.Create()` for pure simulation instances that don't manage game loops.
+
 ## 4. Data Flow
 
 ### 4.1 Simulation Tick
@@ -522,17 +549,19 @@ N ticks later: TickEngine calls pipeline.FlushReady(currentTick)
 Player types command in console
     │
     ▼
-Console node parses command
+Console node parses and routes command
     │
-    ├── Query command → calls ISimulationState.QueryByPath() → displays result
+    ├── Query  → ISimulationState.QueryByPath() → displays result
     │
-    └── Write command → calls ISimulationCommands.ExecuteConsoleCommand()
-                            │
-                            ▼
-                        Simulation Engine executes through proper channels
-                            │
-                            ▼
-                        Result returned to Console → displays output
+    ├── Policy → ISimulationCommands (e.g., SetTaxRate, SetSpendingLevel)
+    │
+    └── Time   → ITimeControl (Pause, Resume, SetSpeed, Tick)
+                    │
+                    ▼
+                Game Controller executes
+                    │
+                    ├── Tick: calls ISimulation.Tick() → emits TickCompleted
+                    └── Pause/Resume/Speed: updates game loop state
 ```
 
 ## 5. Project Structure
@@ -549,7 +578,8 @@ game/
 │   │   │   ├── SimulationState.cs    # Central state container
 │   │   │   ├── SimulationCommands.cs # Command handler
 │   │   │   ├── PolicyPipeline.cs     # IPolicyPipeline implementation
-│   │   │   └── PendingPolicy.cs      # IPendingPolicy value type
+│   │   │   ├── PendingPolicy.cs      # IPendingPolicy value type
+│   │   │   └── ITimeControl.cs       # Time control interface (implemented by Game Controller)
 │   │   ├── Accounting/
 │   │   │   ├── Ledger.cs             # Double-entry ledger
 │   │   │   ├── BalanceSheet.cs       # Balance sheet per agent

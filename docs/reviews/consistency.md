@@ -160,7 +160,7 @@ The Architecture mentions `PricingEngine.cs` and cost-plus markup pricing but pr
 
 ## Medium Findings
 
-### M1. Console Time Commands Cannot Reach Game Controller
+### ~~M1. Console Time Commands Cannot Reach Game Controller~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -170,6 +170,8 @@ The Architecture mentions `PricingEngine.cs` and cost-plus markup pricing but pr
 **The problem:** FR-CON-004 requires the console to support `pause`, `resume`, `speed`, and `tick` commands. Pause/resume/speed are Game Controller responsibilities (Godot layer), but the console routes commands through `ISimulationCommands` (simulation layer). The Architecture provides no path from simulation-layer console commands to Godot-layer time controls.
 
 **Suggested resolution:** Either move time control to the simulation layer (simulation manages its own pause state), or add a separate `ITimeControl` interface that the console can access alongside `ISimulationCommands`.
+
+**Resolution:** Added `ITimeControl` interface (Architecture Section 3.11) with `Tick()`, `Pause()`, `Resume()`, `IsPaused`, `Speed`, and `SetSpeed()`. Defined in the simulation layer; implemented by the Game Controller. Updated Section 2.2 to list `ITimeControl` implementation as a Game Controller responsibility. Updated Section 4.3 console data flow to show three-branch routing: queries → `ISimulationState`, policy → `ISimulationCommands`, time → `ITimeControl`. Added `ITimeControl.cs` to project structure. This also partially addresses M2 by clarifying that the console parses and routes to typed interface methods.
 
 ---
 
