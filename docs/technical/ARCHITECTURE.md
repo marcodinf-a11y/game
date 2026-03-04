@@ -164,6 +164,8 @@ public interface ISimulationState
 }
 ```
 
+The `*State` interfaces (`IGovernmentState`, `ICentralBankState`, etc.) are read-only projection interfaces exposed to the UI and console via `ISimulationState`. Internal agent interfaces (`IFirm`, `IHouseholdClass`, etc.) may carry additional implementation-facing properties and methods. The `*State` variants expose only what external consumers need. For `IFirmSectorState` and `IHouseholdClassState`, the agent interface extends its state projection (e.g., `IFirm : IFirmSectorState`), so properties are defined once in the state interface and inherited by the agent interface.
+
 ### 3.2 Simulation Commands (Write)
 
 The UI sends commands to the simulation through a command interface:
@@ -191,7 +193,46 @@ public interface IAgent
     IBalanceSheet BalanceSheet { get; }
 }
 
-public interface IFirm : IAgent
+// --- Agent State Projections ---
+// Read-only interfaces exposed through ISimulationState.
+// Agent interfaces extend their state projection so properties are defined once.
+
+public interface IGovernmentState
+{
+    /// Cumulative fiscal balance (stock): positive = surplus, negative = deficit.
+    /// Distinct from IEconomicIndicators.GovernmentFiscalBalance which is a per-period flow.
+    decimal CumulativeFiscalBalance { get; }
+    decimal TaxRate { get; }
+    decimal SpendingLevel { get; }
+    SpendingAllocation Allocation { get; }
+    decimal BondsOutstanding { get; }
+    IBalanceSheet BalanceSheet { get; }
+}
+
+public interface ICentralBankState
+{
+    /// Fixed at 0 for MVP.
+    decimal PolicyRate { get; }
+    decimal TreasuryAccountBalance { get; }
+    IBalanceSheet BalanceSheet { get; }
+}
+
+/// MVP models a single aggregate commercial bank.
+/// Plural naming ("Banks", "IBankingState") is forward-compatible
+/// for post-MVP multi-bank support (see L11).
+public interface IBankingState
+{
+    decimal Reserves { get; }
+    decimal LoansOutstanding { get; }
+    decimal TotalDeposits { get; }
+    decimal BondsHeld { get; }
+    decimal Equity { get; }
+    /// CB policy rate + spread + risk premium.
+    decimal LendingRate { get; }
+    IBalanceSheet BalanceSheet { get; }
+}
+
+public interface IFirmSectorState : IAgent
 {
     string SectorId { get; }
     decimal PostedWage { get; }
@@ -201,14 +242,14 @@ public interface IFirm : IAgent
     decimal UnitLaborCost { get; }
     int EmployeeCount { get; }
     decimal Inventory { get; }
-    decimal CapitalStock { get; }        // Current private capital level
-    decimal DepreciationRate { get; }    // Sector-specific, from IDataProvider
-    decimal InvestmentDemand { get; }    // Calculated each tick from capacity gap
-    decimal CurrentMarkup { get; }     // Current markup rate (e.g. 0.20 = 20%)
-    decimal MinimumMarkup { get; }     // Floor for margin compression (from IDataProvider, per sector)
+    decimal CapitalStock { get; }
+    decimal DepreciationRate { get; }
+    decimal InvestmentDemand { get; }
+    decimal CurrentMarkup { get; }
+    decimal MinimumMarkup { get; }
 }
 
-public interface IHouseholdClass : IAgent
+public interface IHouseholdClassState : IAgent
 {
     string ClassId { get; }
     int Population { get; }
@@ -217,6 +258,36 @@ public interface IHouseholdClass : IAgent
     decimal ConsumptionSpending { get; }
     decimal SavingsBalance { get; }
     decimal DebtBalance { get; }
+}
+
+public interface IFirm : IFirmSectorState
+{
+}
+
+public interface IHouseholdClass : IHouseholdClassState
+{
+}
+
+/// Dashboard view of aggregate economic indicators (FR-SIM-004).
+/// Some values intentionally duplicate agent state for UI convenience.
+public interface IEconomicIndicators
+{
+    decimal EmploymentRate { get; }
+    decimal UnemploymentRate { get; }
+    decimal InflationRate { get; }
+    decimal GDP { get; }
+    /// Current-period fiscal balance (flow).
+    /// Distinct from IGovernmentState.CumulativeFiscalBalance which is a cumulative stock.
+    decimal GovernmentFiscalBalance { get; }
+    decimal PrivateSectorNetSavings { get; }
+    IReadOnlyDictionary<string, decimal> CapacityUtilizationBySector { get; }
+    IReadOnlyDictionary<string, decimal> UnitLaborCostsBySector { get; }
+    decimal PrivateDebtLevel { get; }
+    decimal BankReserves { get; }
+    /// Weighted average coupon rate across outstanding bonds (no secondary market in MVP; see M7).
+    decimal BondYields { get; }
+    decimal SavingsRate { get; }
+    decimal WageGrowth { get; }
 }
 ```
 

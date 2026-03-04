@@ -192,7 +192,7 @@ If the Console node parses first, it should call typed methods (like `SetSpendin
 
 ---
 
-### M3. Multiple State Interfaces Referenced But Never Defined
+### ~~M3. Multiple State Interfaces Referenced But Never Defined~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -209,6 +209,8 @@ If the Console node parses first, it should call typed methods (like `SetSpendin
 Without definitions, there is no way to verify that the Architecture covers the PRD requirements for these entities.
 
 **Suggested resolution:** Define all four interfaces with properties mapping to their respective PRD requirements. At minimum, `IEconomicIndicators` should list all 12 indicators from FR-SIM-004.
+
+**Resolution:** Defined all six missing state interfaces in Architecture Section 3.3 under "Agent State Projections": `IGovernmentState` (FR-AGT-001), `ICentralBankState` (FR-AGT-002), `IBankingState` (FR-AGT-003), `IFirmSectorState`, `IHouseholdClassState`, and `IEconomicIndicators` (FR-SIM-004, 13 values from 12 bullet points). Added naming convention note to Section 3.1 explaining that `*State` interfaces are read-only projections for the UI/console, while agent interfaces extend them. `IFirm : IFirmSectorState` and `IHouseholdClass : IHouseholdClassState` so properties are defined once. `IBankingState` doc comment addresses L11 (single aggregate bank, plural naming is forward-compatible). `IEconomicIndicators.BondYields` defined as weighted average coupon rate per M7. Added state interface definition tasks and two RED tests to Implementation Plan Phase 3.
 
 ---
 

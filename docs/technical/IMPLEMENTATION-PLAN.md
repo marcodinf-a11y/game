@@ -206,6 +206,8 @@ Phase 15: Balancing & Polish
 9. `FrAgt004_MultipleHouseholdClasses_EachHasDifferentProperties`
 10. `FrAgt005_MultipleFirmSectors_EachHasDifferentProperties`
 11. `FrMod001_ChangedHouseholdDataValue_AgentReflectsChange`
+12. `FrAgt001_GovernmentState_ExposesAllRequiredProperties`
+13. `FrAgt003_BankingState_ExposesAllFiveTrackedValues`
 
 **GREEN — implement to make tests pass:**
 1. Define `IAgent` interface (id, type, balance sheet)
@@ -216,6 +218,9 @@ Phase 15: Balancing & Polish
 6. Implement `Firm` agent (sector id, deposits, capital, employees, inventory, wage, price, productivity — from `IDataProvider`)
 7. Implement `AgentRegistry` — stores and retrieves agents by type/id
 8. Wire agents to accounting system (each agent owns accounts in the ledger)
+9. Define `IGovernmentState`, `ICentralBankState`, `IBankingState` interfaces (Architecture §3.3)
+10. Define `IFirmSectorState`, `IHouseholdClassState` as base interfaces; make `IFirm : IFirmSectorState`, `IHouseholdClass : IHouseholdClassState`
+11. Define `IEconomicIndicators` interface (implementation deferred to Phase 7/8 when indicator calculation is built)
 
 **REFACTOR:** Extract common agent initialization patterns.
 
