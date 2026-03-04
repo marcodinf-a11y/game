@@ -529,6 +529,20 @@ Defined in the simulation layer as a pure interface (no Godot dependency). Imple
 
 `ITimeControl` is NOT part of the `ISimulation` composite — time control is a Game Controller concern, not a simulation engine concern. `ISimulation` is returned by `ISimulationFactory.Create()` for pure simulation instances that don't manage game loops.
 
+### 3.12 Random Number Generation
+
+Several simulation components need stochastic behavior (labor market matching, firm decision-making, property-based tests). To keep the simulation deterministic and reproducible, all randomness flows through a single injectable abstraction:
+
+```csharp
+public interface IRandom
+{
+    int Next(int minInclusive, int maxExclusive);
+    double NextDouble(); // [0.0, 1.0)
+}
+```
+
+`SeededRandom` wraps `System.Random` with a caller-provided seed. `ISimulationFactory.Create(data, seed)` instantiates `SeededRandom` and injects it into components that need stochastic behavior. In tests, a fixed seed guarantees deterministic replay — Phase 8's property-based tests (e.g., `Property_AnySeedAnyPolicySequence_SfcHoldsEveryTick`) depend on this for reproducibility across runs.
+
 ## 4. Data Flow
 
 ### 4.1 Simulation Tick
@@ -647,7 +661,9 @@ game/
 │   │   │   ├── SimulationCommands.cs # Command handler
 │   │   │   ├── PolicyPipeline.cs     # IPolicyPipeline implementation
 │   │   │   ├── PendingPolicy.cs      # IPendingPolicy value type
-│   │   │   └── ITimeControl.cs       # Time control interface (implemented by Game Controller)
+│   │   │   ├── ITimeControl.cs       # Time control interface (implemented by Game Controller)
+│   │   │   ├── IRandom.cs            # Seeded randomness interface
+│   │   │   └── SeededRandom.cs       # IRandom implementation wrapping System.Random
 │   │   ├── Accounting/
 │   │   │   ├── Ledger.cs             # Double-entry ledger
 │   │   │   ├── BalanceSheet.cs       # Balance sheet per agent

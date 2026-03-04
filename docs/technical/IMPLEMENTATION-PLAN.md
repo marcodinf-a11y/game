@@ -177,6 +177,7 @@ Phase 15: Balancing & Polish
 5. Implement `RecordTransaction()` — validates and records double-entry
 6. Implement `SfcChecker` — verifies all balances sum to zero
 7. Account structure initialized from `IDataProvider` (account types and names come from data)
+8. Define `IRandom` interface and implement `SeededRandom` (wraps `System.Random` with constructor seed, per Architecture §3.12). No dedicated test — validated through first consumer.
 
 **REFACTOR:** Ensure transaction validation covers all edge cases. Extract common patterns.
 
@@ -424,7 +425,7 @@ Phase 15: Balancing & Polish
 2. Implement `IndicatorCalculator` — employment, inflation, GDP, government balance, private balance, capacity utilization, ULC, private debt, all other PRD indicators
 3. Implement `SimulationState` — read-only state container, path-based query system (`QueryByPath`)
 4. Implement `SimulationCommands` — policy change handlers, console command routing
-5. Implement `ISimulationFactory` — create simulation from `IDataProvider` + optional seed
+5. Implement `ISimulationFactory` — create simulation from `IDataProvider` + optional seed, wire seed to `SeededRandom` and inject as `IRandom` (Architecture §3.12) into all components
 
 **REFACTOR:** Optimize tick execution. Extract indicator calculation patterns.
 

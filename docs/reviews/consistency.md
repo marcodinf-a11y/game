@@ -214,7 +214,7 @@ Without definitions, there is no way to verify that the Architecture covers the 
 
 ---
 
-### M4. IRandom Interface Never Implemented
+### ~~M4. IRandom Interface Never Implemented~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -224,6 +224,8 @@ Without definitions, there is no way to verify that the Architecture covers the 
 **The problem:** Architecture 6.5 lists `IRandom` as a core injectable dependency for "seeded random number generation for deterministic tests." No implementation phase creates this interface or its implementations. Phase 8's property-based tests depend on deterministic randomness via the seed parameter on `ISimulationFactory`, but the underlying `IRandom` is never built.
 
 **Suggested resolution:** Add `IRandom` creation to Phase 0 (infrastructure) or Phase 2 (first phase that might need randomness). Define it alongside the other core interfaces.
+
+**Resolution:** Added `IRandom` interface definition and `SeededRandom` narrative to Architecture Section 3.12 (Random Number Generation). Added `IRandom.cs` and `SeededRandom.cs` to project structure Section 5 under `src/Simulation/Core/`. Added Implementation Plan Phase 2 GREEN step 8 (define `IRandom` and implement `SeededRandom`). Amended Phase 8 GREEN step 5 to wire seed through `SeededRandom` and inject as `IRandom` into all components.
 
 ---
 
