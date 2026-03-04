@@ -229,7 +229,7 @@ Without definitions, there is no way to verify that the Architecture covers the 
 
 ---
 
-### M5. "Sector" Balance Sheets (PRD) vs. Per-Agent Balance Sheets (Architecture)
+### ~~M5. "Sector" Balance Sheets (PRD) vs. Per-Agent Balance Sheets (Architecture)~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -241,6 +241,8 @@ Without definitions, there is no way to verify that the Architecture covers the 
 There is no aggregation mechanism to produce sector-level balance sheets from per-agent data.
 
 **Suggested resolution:** Add a method to `ISimulationState` like `IReadOnlyDictionary<string, IBalanceSheet> SectorBalanceSheets` that returns aggregated views, or document that the UI is responsible for aggregating per-agent sheets by agent type.
+
+**Resolution:** Added `EconomicSector` enum (Government, CentralBank, Banking, Households, Firms) to Architecture Section 3.4. Added `IReadOnlyDictionary<EconomicSector, IBalanceSheet> SectorBalanceSheets` property to `ISimulationState` (Section 3.1) with aggregation rules: single-agent sectors (Government, CentralBank, Banking) return their agent's balance sheet directly; multi-agent sectors (Households, Firms) sum `Assets` and `Liabilities` across all agents in the group. Updated Section 6.3 tick-and-read diagram so `BalanceSheetPanel` reads `SectorBalanceSheets` instead of `AllBalanceSheets`. Updated Implementation Plan Phase 11 `BalanceSheetPanel` task to reference `SectorBalanceSheets`.
 
 ---
 

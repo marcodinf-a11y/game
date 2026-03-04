@@ -500,6 +500,7 @@ Phase 15: Balancing & Polish
    - Support multiple data series per chart
    - Create charts for: employment rate, inflation rate, GDP, government balance, private savings, sector output
 3. Implement `BalanceSheetPanel`:
+   - Read `ISimulationState.SectorBalanceSheets` (keyed by `EconomicSector`)
    - Table display for each sector's balance sheet
    - Assets, liabilities, net position columns
    - Updated each tick

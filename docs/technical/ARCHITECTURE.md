@@ -157,12 +157,18 @@ public interface ISimulationState
 
     IEconomicIndicators Indicators { get; }
     IReadOnlyList<IBalanceSheet> AllBalanceSheets { get; }
+    IReadOnlyDictionary<EconomicSector, IBalanceSheet> SectorBalanceSheets { get; }
     IReadOnlyList<IPendingPolicy> PolicyPipeline { get; }
 
     // For console: query any value by path
     object QueryByPath(string path);
 }
 ```
+
+`SectorBalanceSheets` provides aggregated balance sheets keyed by `EconomicSector`. Aggregation rules:
+- **Government, CentralBank, Banking:** return the single agent's balance sheet directly (no computation in MVP — each sector has exactly one agent).
+- **Households:** sum `Assets` and `Liabilities` dictionaries across all household classes; `OwnerId` = `"Households"`.
+- **Firms:** sum `Assets` and `Liabilities` dictionaries across all firm sectors; `OwnerId` = `"Firms"`.
 
 The `*State` interfaces (`IGovernmentState`, `ICentralBankState`, etc.) are read-only projection interfaces exposed to the UI and console via `ISimulationState`. Internal agent interfaces (`IFirm`, `IHouseholdClass`, etc.) may carry additional implementation-facing properties and methods. The `*State` variants expose only what external consumers need. For `IFirmSectorState` and `IHouseholdClassState`, the agent interface extends its state projection (e.g., `IFirm : IFirmSectorState`), so properties are defined once in the state interface and inherited by the agent interface.
 
@@ -300,6 +306,15 @@ public interface IBalanceSheet
     IReadOnlyDictionary<string, decimal> Assets { get; }
     IReadOnlyDictionary<string, decimal> Liabilities { get; }
     decimal NetPosition { get; } // Assets - Liabilities
+}
+
+public enum EconomicSector
+{
+    Government,
+    CentralBank,
+    Banking,
+    Households,
+    Firms
 }
 
 public enum MoneyCircuit
@@ -839,7 +854,7 @@ Game Controller
     └── emits TickCompleted signal (Godot signal)
             │
             ├── ChartPanel reads Indicators, appends data points
-            ├── BalanceSheetPanel reads AllBalanceSheets, refreshes table
+            ├── BalanceSheetPanel reads SectorBalanceSheets, refreshes table
             ├── HUD reads CurrentMonth/CurrentYear, updates label
             ├── PolicyPanel reads pending policy state, updates indicators
             └── ScenarioUI reads scenario progress, updates objectives
