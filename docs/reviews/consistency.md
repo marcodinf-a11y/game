@@ -580,8 +580,8 @@ FR-SIM-001 (SFC accounting), FR-SIM-003 (tick processing), FR-AGT-002 (central b
 | Requirement | Issue(s) |
 |---|---|
 | FR-SIM-002 | ~~C2 (ILedger interface)~~ ✅, ~~M6 (oversimplified circuit access)~~ ✅ |
-| FR-SIM-004 | M3 (IEconomicIndicators undefined), ~~M7 (bond yields)~~ ✅, ~~L2 (missing indicator tests)~~ ✅ |
-| FR-AGT-001 | M3 (IGovernmentState undefined) |
+| FR-SIM-004 | ~~M3 (IEconomicIndicators undefined)~~ ✅, ~~M7 (bond yields)~~ ✅, ~~L2 (missing indicator tests)~~ ✅ |
+| FR-AGT-001 | ~~M3 (IGovernmentState undefined)~~ ✅ |
 | FR-AGT-003 | ~~L11 (single vs. plural bank ambiguity)~~ ✅ |
 | FR-AGT-004 | ~~M11 (no architecture for hierarchical consumption)~~ ✅, ~~L2 (missing debt capacity test)~~ ✅ |
 | FR-PRC-002 | ~~C6 (no architecture, missing tests for buffer 3)~~ ✅ |
@@ -589,12 +589,12 @@ FR-SIM-001 (SFC accounting), FR-SIM-003 (tick processing), FR-AGT-002 (central b
 | FR-LBR-001 | ~~L2 (wage stickiness and determinants untested)~~ ✅ |
 | FR-LBR-002 | ~~L2 (cross-sector mobility untested)~~ ✅ |
 | FR-BND-001 | ~~M8 (household bond participation)~~ ✅ |
-| FR-INV-001 | C5 (absent from architecture) |
-| FR-INV-002 | C5 (absent from architecture), ~~L2 (capital goods from industry untested)~~ ✅ |
-| FR-TIM-001 | C4 (no architecture component) |
-| FR-TIM-002 | C4 (no architecture component), ~~L2 (most lag types untested)~~ ✅ |
-| FR-TIM-003 | C4 (no data source for UI) |
+| FR-INV-001 | ~~C5 (absent from architecture)~~ ✅ |
+| FR-INV-002 | ~~C5 (absent from architecture)~~ ✅, ~~L2 (capital goods from industry untested)~~ ✅ |
+| FR-TIM-001 | ~~C4 (no architecture component)~~ ✅ |
+| FR-TIM-002 | ~~C4 (no architecture component)~~ ✅, ~~L2 (most lag types untested)~~ ✅ |
+| FR-TIM-003 | ~~C4 (no data source for UI)~~ ✅ |
 | FR-CTL-001 | ~~L10 (SpendingAllocation type undefined)~~ ✅ |
 | FR-CON-002 | ~~M10 (QueryByPath path schema unspecified)~~ ✅ |
-| FR-UI-007 | C4 (no data source for pipeline display) |
+| FR-UI-007 | ~~C4 (no data source for pipeline display)~~ ✅ |
 | NFR-DTA-001 | ~~L12 (no error recovery strategy for SFC failures)~~ ✅ |

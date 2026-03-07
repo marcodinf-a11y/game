@@ -24,6 +24,10 @@ If you're new to the project, read in this order:
 | [CONSOLE.md](technical/CONSOLE.md) | technical/ | In-game console commands and scripting | Developers, players |
 | [MODDING.md](technical/MODDING.md) | technical/ | Modding architecture and data format | Modders, developers |
 
+## Decisions
+
+The `decisions/` directory contains [Architecture Decision Records](decisions/README.md) (ADRs) — lightweight documents capturing key design decisions and their rationale.
+
 ## Reviews
 
 The `reviews/` directory contains audit artifacts — point-in-time assessments of document quality and accuracy. These are not reference documentation.
