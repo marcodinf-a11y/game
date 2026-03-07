@@ -128,7 +128,7 @@ An open source, single-player economic simulation game built on Modern Monetary 
 
 #### FR-PRC-003: Inflation Measurement
 - Inflation must be measured as percentage change in average price level between ticks
-- Price level must be a weighted average across all goods
+- Price level must be a weighted average across all sectors
 - Sector-specific price changes must be trackable separately
 
 ### 2.4 Labor Market
@@ -193,7 +193,7 @@ An open source, single-player economic simulation game built on Modern Monetary 
 #### FR-INV-002: Private Investment
 - Firms must invest in capital goods to maintain/expand capacity
 - Investment must be funded from retained profits and/or bank loans
-- Capital goods must be produced by the industry sector
+- Capital goods must be produced by the manufacturing sector
 - Capital must depreciate over time
 
 ### 2.8 Time and Lags
@@ -414,7 +414,7 @@ Examples:
 #### NFR-EXT-001: Modular Design
 - Adding a new sector must not require modifying existing sector code
 - Adding a new household class must not require modifying existing class code
-- Adding a new good/resource must not require modifying existing good code
+- Adding a new sector/sub-sector must not require modifying existing sector code
 - New agent types must be addable through defined interfaces
 
 ### 3.5 Data Integrity

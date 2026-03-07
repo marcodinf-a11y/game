@@ -12,7 +12,7 @@ Four-axis review of the PRD covering correctness, staleness, completeness, and a
 
 ## 1. Correctness -- Contradictions with Other Documents
 
-### C1: FR-INV-002 says "industry sector" -- should be "manufacturing"
+### ~~C1: FR-INV-002 says "industry sector" -- should be "manufacturing"~~ ✅ Resolved
 - **PRD:** FR-INV-002 (line 196): "Capital goods must be produced by the industry sector"
 - **Conflict:** FR-AGT-005 (line 112) in the same PRD says "manufacturing sector." ADR-0005, ECONOMIC-MODEL, and GAME-DESIGN all use "manufacturing." No "industry" sector exists in the 4-sector model.
 
@@ -46,17 +46,17 @@ Four-axis review of the PRD covering correctness, staleness, completeness, and a
 
 ## 2. Staleness -- Outdated Requirements
 
-### S1: FR-INV-002 "industry sector" (same as C1)
+### ~~S1: FR-INV-002 "industry sector" (same as C1)~~ ✅ Resolved
 Leftover from old 3-sector model before ADR-0005.
 
 ### S2: FR-PRC-002 three-buffer-only model (same as C2)
 Missing seller's inflation from ADR-0010.
 
-### S3: NFR-EXT-001 references "goods/resources"
+### ~~S3: NFR-EXT-001 references "goods/resources"~~ ✅ Resolved
 - **PRD:** NFR-EXT-001 (line 417): "Adding a new good/resource must not require modifying existing good code"
 - **Issue:** Goods abstraction dropped by ADR-0005. Should reference "sector/sub-sector."
 
-### S4: FR-PRC-003 "weighted average across all goods"
+### ~~S4: FR-PRC-003 "weighted average across all goods"~~ ✅ Resolved
 - **PRD:** FR-PRC-003 (line 131): "Price level must be a weighted average across all goods"
 - **Issue:** Should say "across all sectors" since goods are not a first-class concept.
 
@@ -155,12 +155,12 @@ Needed for testability and modding. PRD mentions procurement at high level only.
 ## Suggested Priority
 
 ### High (blocks implementation or is factually wrong)
-- C1/S1: "industry" to "manufacturing" (trivial fix)
+- ~~C1/S1: "industry" to "manufacturing" (trivial fix)~~ ✅
 - C2/S2/G2: Add seller's inflation requirement per ADR-0010
 - C3: Add asymmetric markup adjustment per ADR-0010
 - C7/S5/G1: Add Leontief I-O production function requirement per ADR-0009
 - G3/G4: Add MMT invariants (no financial constraint on spending, no sovereign default)
-- S3/S4: "goods" to "sectors" (trivial fix)
+- ~~S3/S4: "goods" to "sectors" (trivial fix)~~ ✅
 
 ### Medium (important for implementation clarity)
 - G5-G7: Policy replacement, deterministic simulation, input log
