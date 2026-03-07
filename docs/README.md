@@ -36,5 +36,4 @@ The `reviews/` directory contains audit artifacts — point-in-time assessments 
 
 | Review | Purpose |
 |---|---|
-| [mmt-accuracy.md](reviews/mmt-accuracy.md) | MMT economic accuracy review |
 | [prd-review.md](reviews/prd-review.md) | PRD correctness, staleness, completeness review |
