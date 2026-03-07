@@ -422,6 +422,7 @@ Examples:
 #### NFR-DTA-001: SFC Guarantee
 - The simulation must never produce an SFC imbalance during normal operation
 - If an imbalance is detected, it must be logged and flagged as a bug
+- On SFC failure, the simulation must pause and present the player with a choice: continue with the inconsistent state, or restore to the last consistent state via deterministic replay
 
 ### 3.6 Usability
 

@@ -109,6 +109,7 @@ A thin Godot node that bridges the simulation engine and the UI. This is the onl
 - Implement `ITimeControl` — advance ticks, manage pause/resume state and speed (FR-CON-004)
 - Hold the `ISimulation` reference; expose `ISimulationState` to UI nodes (read-only)
 - Route player commands (policy changes) from UI to simulation
+- Record policy input log — a list of `(tick, command)` pairs — for deterministic replay (SFC recovery, future save/load)
 - Expose `ISimulationState`, `ISimulationCommands`, and `ITimeControl` to console node
 - Manage game modes (sandbox, scenario) and win/lose detection
 
@@ -404,6 +405,13 @@ The Game Controller and test harness hold an `ISimulation` reference. UI nodes r
 public interface ISimulationFactory
 {
     ISimulation Create(IDataProvider dataProvider, int? seed = null);
+
+    /// Replay a simulation to a target tick using a recorded policy input log.
+    /// Used for SFC failure recovery and future save/load.
+    ISimulation ReplayToTick(
+        IDataProvider dataProvider, int? seed,
+        IReadOnlyList<(int Tick, Action<ISimulationCommands> Command)> inputLog,
+        int targetTick);
 }
 ```
 
@@ -724,6 +732,10 @@ Tick Engine
         ├── Apply depreciation → InvestmentEngine.ApplyDepreciation()
         ├── Balance sheets updated
         ├── SFC consistency check → Ledger.CheckConsistency()
+        │   └── On failure: log diagnostics (accounts, imbalance, tick),
+        │       pause simulation, present player choice:
+        │       (a) Continue with inconsistent state, or
+        │       (b) Restore to tick N-1 via deterministic replay
         ├── Circuit isolation check → Ledger.CheckCircuitIsolation()
         ├── Economic indicators calculated
         └── State snapshot published → Game Controller reads new state
