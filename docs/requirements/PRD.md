@@ -1,10 +1,10 @@
-# Product Requirements Document (PRD)
+# Macrostate — Product Requirements Document (PRD)
 
 ## 1. Overview
 
 ### 1.1 Product
 
-An open source, single-player economic simulation game built on Modern Monetary Theory (MMT). The player governs a sovereign currency-issuing nation, setting fiscal policy and observing how money flows through a stock-flow consistent economy.
+Macrostate is an open source, single-player economic simulation game built on Modern Monetary Theory (MMT). The player governs a sovereign currency-issuing nation, setting fiscal policy and observing how money flows through a stock-flow consistent economy.
 
 ### 1.2 Goals
 

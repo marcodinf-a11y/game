@@ -1,4 +1,4 @@
-# Documentation
+# Macrostate — Documentation
 
 An open source economic simulation game built on Modern Monetary Theory (MMT).
 

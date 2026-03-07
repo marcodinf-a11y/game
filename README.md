@@ -1,4 +1,4 @@
-# MMT Economic Simulation Game
+# Macrostate
 
 An open source economic simulation game that models [Modern Monetary Theory](https://en.wikipedia.org/wiki/Modern_Monetary_Theory) (MMT) ideas through gameplay. Players take the role of a sovereign currency-issuing government, setting fiscal policy and observing how money flows through the economy.
 

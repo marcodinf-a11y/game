@@ -1,8 +1,8 @@
-# Game Design Document
+# Macrostate — Game Design Document
 
 ## Concept
 
-An open source economic simulation grounded in Modern Monetary Theory (MMT). The player governs a sovereign currency-issuing nation in a modern/contemporary world with multiple AI-driven economies.
+Macrostate is an open source economic simulation grounded in Modern Monetary Theory (MMT). The player governs a sovereign currency-issuing nation in a modern/contemporary world with multiple AI-driven economies.
 
 The game aims to let players experience MMT dynamics firsthand — learning not through text, but through the consequences of their fiscal decisions.
 
