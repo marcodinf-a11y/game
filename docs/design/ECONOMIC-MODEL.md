@@ -223,7 +223,7 @@ All firms are profit-driven: they estimate demand, consider costs, and make prod
 - Produce goods/services
 - Set prices (see Pricing)
 - Pay wages and taxes
-- Invest in capital from retained profits + bank loans
+- Invest in capital via bank loans or internal funds
 - Hold inventory of unsold goods
 
 ## Production Function: Leontief Input-Output
@@ -526,13 +526,14 @@ Firms invest in capital goods to maintain and expand productive capacity:
 **Investment decision factors:**
 - Expected future demand (based on recent sales trends)
 - Current capacity utilization (if near full, need to expand)
-- Profitability (can they afford it from retained profits?)
 - Borrowing costs (bank lending rate)
 - Available capital goods on the market (produced by manufacturing sector)
 
 **Funding sources:**
-1. Retained profits (internally generated funds)
-2. Bank loans (endogenous money creation)
+1. Bank loans (credit creation — new money is created to fund the investment)
+2. Internal funds (retained profits redirected to investment)
+
+Bank lending is the primary enabler of investment. A firm's decision to invest is based on expected demand, capacity utilization, and borrowing costs — not on the pre-existence of savings. When investment is bank-funded, the loan creates new deposits (which become someone's saving), so at the macro level investment creates saving, not the reverse.
 
 **Capital dynamics:**
 - Capital goods depreciate over time (require replacement investment)
