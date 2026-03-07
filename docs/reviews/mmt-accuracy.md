@@ -367,7 +367,7 @@ All firms are described as "profit-driven." This excludes public enterprises, no
 | F6 | Medium | Missing: government cannot default on own currency | **Resolved** — "No Sovereign Default" subsection added to ECONOMIC-MODEL.md Government Bonds section |
 | F7 | Medium | Saving-investment causation direction ambiguous | **Resolved** — reframed: bank loans listed first, removed "can they afford it" framing, added investment-creates-saving note |
 | F8 | Medium | No mechanism for central bank reserve provision | **Resolved** — reserve provision (lender of last resort / standing facility) added to Central Bank actions in ECONOMIC-MODEL.md |
-| F9 | Medium | Bond issuance framed as deficit management | Fix: correct to reserve management |
+| F9 | Medium | Bond issuance framed as deficit management | **Resolved** — reframed as reserve management operation in ECONOMIC-MODEL.md |
 | F10 | Medium | Missing: interest rate fiscal channel | Fix: add explanatory note |
 | F11 | Low | Fixed population limits resource constraint demo | Post-MVP |
 | F12 | Low | No currency demand mechanism (Chartalism) | Post-MVP; add note |
