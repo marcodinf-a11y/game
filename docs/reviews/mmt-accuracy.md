@@ -370,7 +370,7 @@ All firms are described as "profit-driven." This excludes public enterprises, no
 | F9 | Medium | Bond issuance framed as deficit management | **Resolved** — reframed as reserve management operation in ECONOMIC-MODEL.md |
 | F10 | Medium | Missing: interest rate fiscal channel | **Resolved** — fiscal channel note added to Interest Payments section in ECONOMIC-MODEL.md |
 | F11 | Low | Fixed population limits resource constraint demo | Post-MVP |
-| F12 | Low | No currency demand mechanism (Chartalism) | Post-MVP; add note |
+| F12 | Low | No currency demand mechanism (Chartalism) | **Resolved** — MVP simplification note added to ECONOMIC-MODEL.md; mechanism needed post-MVP with foreign sector |
 | F13 | Low | No automatic stabilizers (JG) in MVP | Post-MVP; already planned |
 | F14 | Low | "Government balance" parenthetical frames deficit as negative | **Resolved** — reframed as "net currency creation / net currency withdrawal" |
 | F15 | Low | Profit-driven firms only | Post-MVP |

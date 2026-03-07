@@ -688,3 +688,4 @@ The MVP implements the full model above with these simplifications:
 | Wage negotiation | Simple posting/acceptance | Collective bargaining, contracts |
 | Government spending types | 3 (infrastructure, services, transfers) | More granular spending categories |
 | AIDS parameters | US-based estimates | Country-specific parameter sets |
+| Currency demand | Implicit — single currency, no alternative exists (Chartalism not modeled) | Explicit tax-driven currency demand for exchange rate dynamics |
