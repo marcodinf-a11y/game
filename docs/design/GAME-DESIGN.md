@@ -67,6 +67,20 @@ When there is slack in the economy (unemployed workers, idle factories), spendin
 
 **In-game:** Resource utilization meters show how close each sector is to capacity. Spending into slack = more output. Spending into full capacity = inflation.
 
+### 5. Political Fiscal Constraints (post-MVP)
+
+Real-world governments often impose political rules on their own spending — the US debt ceiling, Germany's Schuldenbremse (debt brake), balanced budget amendments, Maastricht criteria. These are not operational necessities — the currency-issuing government can always spend — they are self-imposed political choices with real economic consequences.
+
+A **policy constraint layer** sits between the player's decisions and the simulation engine. The engine itself never blocks spending (see ECONOMIC-MODEL.md, Government section). Political constraints are optional rules that restrict what the player can do, enforced by scenario configuration or player choice:
+
+- **Debt ceiling:** Cap on outstanding bonds. Hitting it triggers a political crisis event; the player must raise the ceiling or cut spending.
+- **Balanced budget rule:** Spending cannot exceed tax revenue. Forces pro-cyclical austerity.
+- **Deficit limit (e.g., Maastricht 3% of GDP):** Caps the deficit as a share of GDP.
+
+These constraints create gameplay tension and demonstrate a core MMT insight: self-imposed financial rules can cause unnecessary harm (unemployment, recessions) by preventing the government from responding to real economic conditions. The real constraint is always inflation, not an arbitrary number.
+
+**In-game:** Players can observe the consequences of enabling or removing these rules — comparing outcomes with and without political constraints in otherwise identical economies.
+
 ## Gameplay
 
 ### Flow

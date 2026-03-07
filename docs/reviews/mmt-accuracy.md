@@ -360,7 +360,7 @@ All firms are described as "profit-driven." This excludes public enterprises, no
 | ID | Severity | Finding | Status |
 |---|---|---|---|
 | F1 | Critical | Tax-before-spend ordering contradicts MMT | **Resolved** — reordered in ECONOMIC-MODEL.md and ARCHITECTURE.md |
-| F2 | Critical | Government must not have financial spending constraint | Fix: add explicit statement, confirmed by author |
+| F2 | Critical | Government must not have financial spending constraint | **Resolved** — critical design rule added to ECONOMIC-MODEL.md and ARCHITECTURE.md |
 | F3 | Critical | Production function undefined — must be Leontief | Fix: add Leontief specification, confirmed by author |
 | F4 | Medium | Missing seller's inflation / profit-push mechanism | Fix: add asymmetric markup adjustment |
 | F5 | Medium | Debt-to-GDP framing embeds mainstream assumptions | Fix: add companion indicator, neutral renaming |

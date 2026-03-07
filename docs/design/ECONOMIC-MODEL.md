@@ -114,6 +114,10 @@ The currency-issuing sovereign. The player controls this sector.
 - Outstanding bonds (liabilities)
 - Accumulated deficit/surplus
 
+> **Critical design rule:** The Treasury account balance never constrains government spending. The government, as currency issuer, can always spend by crediting bank reserve accounts. The Treasury balance is tracked for accounting purposes only — it is not a budget constraint. The real constraint on government spending is inflation (available real resources), not money.
+>
+> **Political constraints** (debt ceilings, balanced budget rules) are self-imposed policy choices, not operational limits. These are modeled in the policy constraint layer (post-MVP), not in the engine. See GAME-DESIGN.md Section 5.
+
 **Actions:**
 - Spend money (creates currency) allocated to: infrastructure, public services, direct transfers
 - Collect taxes (destroys currency)

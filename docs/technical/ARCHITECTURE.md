@@ -187,6 +187,9 @@ public record SpendingAllocation(
     decimal DirectTransfers
 );
 
+// SetSpendingLevel() must never reject a spending level based on the Treasury
+// account balance. The inflation consequences of excessive spending are modeled
+// through the pricing engine, not through a financial constraint on the government.
 public interface ISimulationCommands
 {
     void SetSpendingLevel(decimal amount);
