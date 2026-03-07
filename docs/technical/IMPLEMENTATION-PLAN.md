@@ -598,7 +598,7 @@ Phase 15: Balancing & Polish
 **Tasks:**
 1. Implement sandbox mode:
    - No win/lose conditions
-   - Score dashboard with all key metrics
+   - Dashboard with all key metrics
    - Free play with all controls available
 2. Scenario data format already defined in Phase 1 (`ScenarioData` model, `scenarios/*.json` files)
 3. Implement scenario loader:
@@ -621,7 +621,7 @@ Phase 15: Balancing & Polish
 
 **Dependencies:** Phase 10, Phase 11 (UI needs to exist)
 
-**Definition of done:** Player can start sandbox or scenario mode. Scenario can be won or lost. Score dashboard works in sandbox.
+**Definition of done:** Player can start sandbox or scenario mode. Scenario can be won or lost. Dashboard works in sandbox.
 
 ---
 
@@ -689,7 +689,7 @@ Phase 15: Balancing & Polish
 | Balancing difficulty (unrealistic dynamics) | All parameters in data files — iterate without code changes. Parameter sweep tests catch regressions. 100+ year stability tests. |
 | Godot C# integration issues | Keep simulation as pure C# library. Minimize Godot-specific code. Simulation is fully tested headlessly before Godot integration. |
 | Scope creep | Strict MVP scope defined. Features deferred to post-MVP are documented. |
-| Performance (slow ticks at scale) | Population groups (not individual agents) keep computation manageable. Profile early if tick time exceeds 100ms. |
+| Performance (slow ticks at scale) | Household classes (not individual agents) keep computation manageable. Profile early if tick time exceeds 100ms. |
 | Chart rendering in Godot | Evaluate chart solutions early in Phase 11. Custom drawing with Godot's `_Draw()` is always a fallback. |
 | TDD slowing early development | Pure C# simulation is ideal for TDD — no UI, no framework dependencies, fast test execution. The overhead is minimal and the safety net is significant. |
 | Test fixtures diverging from base data | `TestData/FullBase/` is a copy of `data/base/`. CI check verifies they stay in sync. |

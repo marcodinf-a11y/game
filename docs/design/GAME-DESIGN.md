@@ -81,7 +81,7 @@ When there is slack in the economy (unemployed workers, idle factories), spendin
 
 **Objective/scenario-based** with both guided and freeform play:
 
-- **Sandbox mode:** No win/lose conditions. Free experimentation with a score dashboard tracking key metrics. Ideal for learning and exploration.
+- **Sandbox mode:** No win/lose conditions. Free experimentation with a dashboard tracking key metrics. Ideal for learning and exploration.
 - **Scenario mode:** Predefined scenarios with specific objectives and fail conditions. Examples:
   - "Achieve 95% employment with inflation below 5% within 10 years"
   - "Recover from a financial crisis without causing hyperinflation"
@@ -98,7 +98,7 @@ When there is slack in the economy (unemployed workers, idle factories), spendin
 
 ### Agent-Based with Populations
 
-The economy is modeled using **population groups** that behave as collective agents. Each group has aggregate behavior emerging from simple rules:
+The economy is modeled using **household classes** that behave as collective agents. Each class has aggregate behavior emerging from simple rules:
 
 - **Households** — earn wages, consume goods, save surplus, pay taxes
 - **Firms (by sector)** — hire workers, produce goods/services, sell output, pay wages, pay taxes

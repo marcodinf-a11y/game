@@ -482,7 +482,7 @@ Similarly, `IDataValidator.cs` and `DataValidator.cs` are described in Architect
 
 ---
 
-### L8. Terminology Inconsistencies
+### ~~L8. Terminology Inconsistencies~~ ✅ Resolved
 
 | Term Variants | Context |
 |---|---|
@@ -492,6 +492,14 @@ Similarly, `IDataValidator.cs` and `DataValidator.cs` are described in Architect
 | `IFirmSectorState` / `IFirm` | Same pattern as above. |
 | "Dashboard" / "score dashboard" | PRD calls it a "dashboard" for sandbox mode (no win/lose). Implementation Plan adds "score," implying scoring in a mode with no win/lose conditions. |
 | `IMPLEMENTATION-PLAN.md` | Listed in the docs directory on disk but omitted from Architecture Section 5's project structure listing. |
+
+**Resolution:** Resolved each sub-item:
+
+1. **"Household classes" vs. "population groups":** Standardized on "household classes" everywhere. Replaced "population groups" in PRD out-of-scope table, Architecture §8.2 and §8.3, Implementation Plan risk table, and Game Design document.
+2. **`Banks` property:** Renamed `ISimulationState.Banks` to `Bank` (singular) to match the MVP's single aggregate bank. Updated path schema in §6.6 (`banks.*` → `bank.*`). Updated `IBankingState` doc comment to note it describes banking-sector state, not the agent directly. Also resolves L11.
+3. **`*State` vs. agent interface relationship:** Already resolved by M3 — Section 3.1 documents the naming convention: `*State` interfaces are read-only projections, agent interfaces extend them (`IFirm : IFirmSectorState`, `IHouseholdClass : IHouseholdClassState`).
+4. **"Score dashboard":** Dropped "score" prefix. Updated Game Design and Implementation Plan Phase 13 to use "dashboard" only.
+5. **`IMPLEMENTATION-PLAN.md` missing from Section 5:** Non-issue — Section 5 lists source and data files, not docs. No change needed.
 
 ---
 
@@ -506,7 +514,7 @@ Similarly, `IDataValidator.cs` and `DataValidator.cs` are described in Architect
 
 ---
 
-### L11. Single Aggregate Bank vs. Plural Interfaces
+### ~~L11. Single Aggregate Bank vs. Plural Interfaces~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -515,7 +523,7 @@ Similarly, `IDataValidator.cs` and `DataValidator.cs` are described in Architect
 
 The out-of-scope table says "multiple competing banks" is deferred, implying the MVP has one aggregate bank. But the Architecture uses plural language throughout: the `ISimulationState` property is `IBankingState Banks` (plural), FR-AGT-003 uses "commercial banks must hold deposits," and the Architecture 2.1 narrative says "CommercialBank" (singular agent name) while the interface assumes a plural. L8 flags this as a terminology issue, but the deeper question is whether the MVP models one bank entity or multiple — this affects Phase 3 agent creation (how many bank agents to instantiate) and Phase 5/6 behavior (do banks compete for deposits or loans, or is there one aggregate?).
 
-**Suggested resolution:** Add an explicit statement to the Architecture: "The MVP models a single aggregate commercial bank. The `Banks` property and plural references are forward-compatible naming for post-MVP multi-bank support." Or, if multiple banks are intended for MVP, remove "multiple competing banks" from the out-of-scope list.
+**Resolution:** Renamed `ISimulationState.Banks` to `Bank` (singular). Updated path schema (`banks.*` → `bank.*`). The Architecture doc comment on `IBankingState` now states: "MVP models a single aggregate commercial bank." The `IBankingState` interface name is retained — it describes banking-sector state, which is correct regardless of how many bank agents exist. See L8 resolution for full details.
 
 ---
 
@@ -559,7 +567,7 @@ FR-SIM-001 (SFC accounting), FR-SIM-003 (tick processing), FR-AGT-002 (central b
 | FR-SIM-002 | ~~C2 (ILedger interface)~~ ✅, ~~M6 (oversimplified circuit access)~~ ✅ |
 | FR-SIM-004 | M3 (IEconomicIndicators undefined), ~~M7 (bond yields)~~ ✅, ~~L2 (missing indicator tests)~~ ✅ |
 | FR-AGT-001 | M3 (IGovernmentState undefined) |
-| FR-AGT-003 | L11 (single vs. plural bank ambiguity) |
+| FR-AGT-003 | ~~L11 (single vs. plural bank ambiguity)~~ ✅ |
 | FR-AGT-004 | ~~M11 (no architecture for hierarchical consumption)~~ ✅, ~~L2 (missing debt capacity test)~~ ✅ |
 | FR-PRC-002 | ~~C6 (no architecture, missing tests for buffer 3)~~ ✅ |
 | FR-PRC-003 | ~~L2 (sector-specific price tracking untested)~~ ✅ |

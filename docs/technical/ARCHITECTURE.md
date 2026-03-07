@@ -151,7 +151,7 @@ public interface ISimulationState
 
     IGovernmentState Government { get; }
     ICentralBankState CentralBank { get; }
-    IBankingState Banks { get; }
+    IBankingState Bank { get; }
     IReadOnlyList<IHouseholdClassState> HouseholdClasses { get; }
     IReadOnlyList<IFirmSectorState> FirmSectors { get; }
 
@@ -228,9 +228,8 @@ public interface ICentralBankState
     IBalanceSheet BalanceSheet { get; }
 }
 
-/// MVP models a single aggregate commercial bank.
-/// Plural naming ("Banks", "IBankingState") is forward-compatible
-/// for post-MVP multi-bank support (see L11).
+/// MVP models a single aggregate commercial bank (see L11).
+/// IBankingState describes banking-sector state, not the agent directly.
 public interface IBankingState
 {
     decimal Reserves { get; }
@@ -1028,7 +1027,7 @@ Paths are dot-separated, lowercase segments. Property names use **camelCase** ve
 | `time` | `CurrentMonth`, `CurrentYear` on `ISimulationState` | — |
 | `government` | `IGovernmentState` | — |
 | `centralbank` | `ICentralBankState` | — |
-| `banks` | `IBankingState` | — |
+| `bank` | `IBankingState` | — |
 | `firms.<sectorId>` | `IFirmSectorState` | `SectorId` (e.g., `agriculture`, `manufacturing`, `construction`, `services`) |
 | `households.<classId>` | `IHouseholdClassState` | `ClassId` (e.g., `low`, `middle`, `high`) |
 | `indicators` | `IEconomicIndicators` | — |
@@ -1042,8 +1041,8 @@ Paths are dot-separated, lowercase segments. Property names use **camelCase** ve
 | `government.taxRate` | Current tax rate | `decimal` |
 | `government.bondsOutstanding` | Total bonds outstanding | `decimal` |
 | `centralbank.policyRate` | CB policy rate | `decimal` |
-| `banks.reserves` | Bank reserve balance | `decimal` |
-| `banks.lendingRate` | Current lending rate | `decimal` |
+| `bank.reserves` | Bank reserve balance | `decimal` |
+| `bank.lendingRate` | Current lending rate | `decimal` |
 | `firms.agriculture.currentPrice` | Agriculture sector price | `decimal` |
 | `firms.manufacturing.capacityUtilization` | Manufacturing capacity utilization | `decimal` |
 | `firms.construction` | All construction properties | `IReadOnlyDictionary<string, object>` |
@@ -1123,14 +1122,14 @@ The most important architectural decision. Alternatives considered:
 Godot and some game engines push ECS. We use a more traditional OOP agent model because:
 - Economic agents have complex behavior that maps well to objects
 - The SFC accounting system is inherently relational (balance sheets, transactions)
-- Population groups are not entities with interchangeable components
+- Household classes are not entities with interchangeable components
 - ECS adds complexity without clear benefit for this simulation type
 
 ### 8.3 Single-Threaded Simulation
 
 The simulation runs on a single thread. Multi-threading adds complexity and is unnecessary for the MVP:
 - Monthly ticks are sequential by nature (phases depend on previous phases)
-- Population groups (not individual agents) keep the computation manageable
+- Household classes (not individual agents) keep the computation manageable
 - Godot's main thread handles rendering; simulation can run on a background thread if needed later
 
 ## 9. Testing Architecture

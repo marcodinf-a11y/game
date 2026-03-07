@@ -461,7 +461,7 @@ The following are explicitly not part of the MVP:
 | Foreign sector / trade / sectoral balances (3-sector) | Requires foreign sector |
 | Multiple economies / AI nations | Focus on domestic dynamics first |
 | Multiple provinces / geographic map gameplay | One province proves the economic model |
-| Individual agent simulation (population groups only) | Population groups sufficient for MVP |
+| Individual agent simulation (household classes only) | Household classes sufficient for MVP |
 | Monetary policy (CB rate changes) | CB rate fixed at 0 in MVP |
 | Multiple tax types | Single income tax; progressive/sales/wealth taxes later |
 | Bond secondary market | No resale in MVP |
