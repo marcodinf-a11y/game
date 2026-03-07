@@ -55,6 +55,7 @@ An open source, single-player economic simulation game built on Modern Monetary 
   - Private sector net savings
   - Capacity utilization per sector
   - Unit labor costs per sector
+  - Public sector employment share
   - Private debt level
   - Bank reserves
   - Bond yields (weighted average coupon rate across outstanding bonds; no secondary market in MVP)
@@ -69,6 +70,10 @@ An open source, single-player economic simulation game built on Modern Monetary 
 - Must issue bonds via auction
 - Must track cumulative deficit/surplus
 - Spending must be allocatable to: infrastructure, public services, direct transfers
+- Must employ workers directly (public sector employment) competing in the labor market alongside firms
+- Must procure goods and services from private sectors based on spending allocation (infrastructure -> construction/manufacturing demand, public services -> services/manufacturing demand)
+- Must track public sector employment separately from private employment
+- Direct transfers must create no direct resource demand — money flows to households who spend via AIDS demand system
 
 #### FR-AGT-002: Central Bank
 - Must maintain reserve accounts for commercial banks
@@ -88,21 +93,23 @@ An open source, single-player economic simulation game built on Modern Monetary 
 #### FR-AGT-004: Households (3 Classes)
 - Must exist in three classes: low income, middle income, high income
 - Each class must have different: consumption patterns, saving rates, reservation wages, debt capacity
-- Must consume according to hierarchical needs: survival → shelter → comfort → luxury
-- Must supply labor to firms
+- Must consume according to the AIDS (Almost Ideal Demand System) — budget shares across sectors determined by income level and sector prices
+- Each class must have distinct AIDS parameters (alpha, beta, gamma) reflecting empirically different consumption patterns
+- Price elasticity and income elasticity must emerge from the AIDS parameters, not be hardcoded separately
+- Budget shares must sum to 1 for each household class (adding-up constraint)
+- Must supply labor to firms and government
 - Must accept/reject job offers based on reservation wage
 - Must be able to take on debt (consumer loans, mortgages)
 - Must pay taxes on income
-- Must respond to price changes (price elasticity per need level)
 
-#### FR-AGT-005: Firms (3 Sectors)
-- Must exist in three sectors: agriculture, industry, services
+#### FR-AGT-005: Firms (4 Sectors)
+- Must exist in four sectors: agriculture & primary, manufacturing, construction, services
 - Each sector must have different input/output mixes
 - Must make profit-driven production decisions (estimate demand, consider costs)
 - Must post wages and hire workers
 - Must set prices using cost-plus markup with demand adjustment
 - Must use unit labor costs (wages/productivity) not raw wages in pricing
-- Must invest in capital from retained profits and/or bank loans
+- Must invest in capital from retained profits and/or bank loans (capital goods produced by manufacturing sector)
 - Must hold inventory of unsold goods
 - Must pay wages and taxes
 
@@ -432,7 +439,7 @@ The MVP is complete when:
 2. **Two money circuits visible** — reserves and deposits tracked and displayable
 3. **Policy controls work** — player can adjust spending, allocation, and tax rate
 4. **Money circuit flows** — government spending creates currency; taxation destroys it
-5. **Production runs** — firms produce based on profit-driven decisions; households consume by needs hierarchy
+5. **Production runs** — firms produce based on profit-driven decisions; households consume via AIDS demand system
 6. **Labor market functions** — firms post wages, households accept/reject, unemployment emerges naturally
 7. **Bank lending works** — banks create money via loans; repayments destroy it
 8. **Bond auctions work** — government issues bonds; banks bid; CB backstops
@@ -460,6 +467,7 @@ The following are explicitly not part of the MVP:
 | Bank insolvency / systemic crisis mechanics | Defaults tracked but no systemic crisis modeling |
 | Collective bargaining / wage contracts | Simple wage posting only |
 | 5+ household classes or continuous income spectrum | 3 classes in MVP; continuous spectrum later |
+| Sub-sector hierarchy | 4 top-level sectors sufficient for MVP; sub-sector expansion post-MVP |
 | Mod loader / mod management UI | Data-driven JSON modding sufficient for MVP |
 | Plugin API for code mods | Data-driven JSON modding sufficient for MVP |
 | Multiplayer | Single-player focus for MVP |

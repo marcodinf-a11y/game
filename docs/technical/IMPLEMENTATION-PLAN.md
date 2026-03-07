@@ -83,12 +83,13 @@ Phase 15: Balancing & Polish
 5. Create test project (`tests/Simulation.Tests/Simulation.Tests.csproj`) with xUnit and a property-based testing library (FsCheck or similar)
 6. Create `InMemoryDataProvider` skeleton (implements `IDataProvider`, stores data in dictionaries)
 7. Create `SimulationTestHarness` skeleton (convenience methods for test setup)
-8. Create test data directories: `tests/Simulation.Tests/TestData/{Minimal,FullBase,InvalidData,Scenarios}`
-9. Create `data/base/` directory structure with placeholder JSON files
-10. Create `mods/.gitkeep`
-11. Add `.gitignore` for C#, Godot, and .NET artifacts
-12. Write one smoke test: `SmokeTest_ProjectBuilds_TestFrameworkRuns`
-13. Verify: solution builds, tests run (smoke test passes), Godot project opens
+8. Create `TestDataBuilder` skeleton (builder pattern for constructing test data model objects — sectors, households, firms, etc.). Methods added as data model classes are defined in Phase 1.
+9. Create test data directories: `tests/Simulation.Tests/TestData/{Minimal,FullBase,InvalidData,Scenarios}`
+10. Create `data/base/` directory structure with placeholder JSON files
+11. Create `mods/.gitkeep`
+12. Add `.gitignore` for C#, Godot, and .NET artifacts
+13. Write one smoke test: `SmokeTest_ProjectBuilds_TestFrameworkRuns`
+14. Verify: solution builds, tests run (smoke test passes), Godot project opens
 
 **Dependencies:** None
 
@@ -107,7 +108,7 @@ Phase 15: Balancing & Polish
 **RED — write failing tests first:**
 1. `FrMod001_LoadSectorData_ReturnsDeserializedSectors`
 2. `FrMod001_LoadHouseholdData_ReturnsDeserializedClasses`
-3. `FrMod001_LoadAllDataTypes_EachReturnsValidObjects` (goods, firms, banks, government, production, parameters, simulation config)
+3. `FrMod001_LoadAllDataTypes_EachReturnsValidObjects` (consumption, firms, banks, government, production, parameters, simulation config)
 4. `FrMod002_MissingRequiredField_ValidationErrorWithFieldName`
 5. `FrMod002_NegativeMarkupValue_ValidationErrorWithPath`
 6. `FrMod002_InvalidJsonSyntax_ClearParseError`
@@ -125,16 +126,17 @@ Phase 15: Balancing & Polish
 18. `DataModels_RoundTrip_SerializeDeserializeMatch`
 
 **GREEN — implement to make tests pass:**
-1. Define data model classes: `SectorData`, `GoodsData`, `HouseholdData`, `FirmData`, `BankData`, `GovernmentData`, `ProductionData`, `ParametersData`, `SimulationConfigData`, `ScenarioData`
+1. Define data model classes: `SectorData`, `ConsumptionData`, `HouseholdData`, `FirmData`, `BankData`, `GovernmentData` (including `GovernmentDemandData`), `ProductionData`, `ParametersData`, `SimulationConfigData`, `ScenarioData`
 2. Implement `IDataProvider` interface
 3. Implement `JsonDataProvider` — load JSON from disk, deserialize to data model classes, resolve paths through `data/base/`
 4. Implement `IDataValidator` interface and `DataValidator` — validate required fields, value ranges, referential integrity between data files
 5. Complete `InMemoryDataProvider` — register data objects in memory, return on request
 6. Create all `data/base/` JSON files:
-   - `economy/sectors.json`, `economy/goods.json`, `economy/production.json`, `economy/parameters.json`
+   - `economy/sectors.json`, `economy/consumption.json`, `economy/production.json`, `economy/parameters.json`
    - `agents/households.json`, `agents/firms.json`, `agents/banks.json`, `agents/government.json`
    - `scenarios/sandbox.json`, `scenarios/full-employment.json`
    - `config/simulation.json`, `config/ui.json`
+   - `map/default-map.json` (placeholder — single province, populated with real content in Phase 14)
 7. Create test fixtures:
    - `TestData/Minimal/` — 1 sector, 1 household class, minimal valid data
    - `TestData/FullBase/` — copy of `data/base/`
@@ -191,7 +193,7 @@ Phase 15: Balancing & Polish
 
 **Goal:** All agent types exist with balance sheets and basic state. No behavior yet.
 
-**Test fixtures needed:** Minimal data with agent definitions (1 sector, 1 household class, 1 bank, government, central bank).
+**Test fixtures needed:** Minimal data with agent definitions (1 sector, 1 household class, 1 bank, government with spending demand mapping, central bank).
 
 **TDD Cycle:**
 
@@ -209,10 +211,12 @@ Phase 15: Balancing & Polish
 11. `FrMod001_ChangedHouseholdDataValue_AgentReflectsChange`
 12. `FrAgt001_GovernmentState_ExposesAllRequiredProperties`
 13. `FrAgt003_BankingState_ExposesAllFiveTrackedValues`
+14. `FrAgt001_GovernmentState_ExposesPublicEmploymentProperties`
+15. `FrAgt005_FourFirmSectors_CreatedFromData`
 
 **GREEN — implement to make tests pass:**
 1. Define `IAgent` interface (id, type, balance sheet)
-2. Implement `Government` agent (treasury account, spending level, allocation, tax rate — all from `IDataProvider`)
+2. Implement `Government` agent (treasury account, spending level, allocation, tax rate, public employment tracking, spending-to-resource mapping — all from `IDataProvider`)
 3. Implement `CentralBank` agent (reserve accounts, policy rate — from `IDataProvider`)
 4. Implement `CommercialBank` agent (reserves, deposits, loans, bonds, equity — from `IDataProvider`)
 5. Implement `Household` agent (class id, population, deposits, debts, employment status, reservation wage — from `IDataProvider`)
@@ -235,7 +239,7 @@ Phase 15: Balancing & Polish
 
 **Goal:** Firms produce goods, set prices, households buy goods. Labor market matches workers to jobs.
 
-**Test fixtures needed:** Minimal data with sector definitions, goods, household needs hierarchy, markup rates, productivity values.
+**Test fixtures needed:** Minimal data with sector definitions (4 sectors), AIDS parameters per household class, government demand mapping, markup rates, productivity values.
 
 **TDD Cycle:**
 
@@ -254,27 +258,40 @@ Phase 15: Balancing & Polish
 12. `FrPrc002_CostRiseWithMarginSlack_FirmAbsorbsViaSmallerMarkup`
 13. `FrPrc002_CostRiseExceedsMarginSlack_PriceRisesByResidual`
 14. `FrPrc002_AllThreeBuffersExhausted_InflationOccurs`
-15. `FrSim003_HouseholdsBuySurvivalBeforeComfort`
-16. `FrAgt004_LowIncomeHouseholds_HigherShareOnNecessities`
-17. `FrSim001_AllPurchases_RecordedAsLedgerTransactions`
-18. `FrSim001_AfterFullMarketCycle_SfcCheckPasses`
-19. `FrMod001_ChangedMarkupInData_ProducesHigherPrices`
-20. `FrMod001_ChangedNeedsHierarchy_ChangesConsumptionPattern`
+15. `FrAgt004_IncomeIncrease_FoodBudgetShareDeclines` — Engel's law via AIDS beta parameters
+16. `FrAgt004_PriceIncrease_SubstitutionToOtherSectors` — cross-price elasticity via AIDS gamma
+17. `FrAgt004_BudgetSharesSumToOne_AllClasses` — AIDS adding-up constraint
+18. `FrAgt004_LowVsHighIncome_DifferentBudgetShares` — per-class parameters produce distinct patterns
+19. `FrAgt004_ExtremeIncome_BudgetSharesStayValid` — no negative shares or shares > 1
+20. `FrAgt001_GovernmentInfrastructureSpending_CreatesConstructionDemand` — government procurement
+21. `FrAgt001_GovernmentHiresFromLaborPool_CompetesWithFirms` — government as employer
+22. `FrAgt001_DirectTransfers_NoProcurementDemand` — transfers don't consume resources
+23. `FrAgt001_PublicEmploymentTrackedSeparately` — public/private split visible
+24. `FrSim001_AllPurchases_RecordedAsLedgerTransactions`
+25. `FrSim001_AfterFullMarketCycle_SfcCheckPasses`
+26. `FrMod001_ChangedMarkupInData_ProducesHigherPrices`
+27. `FrMod001_ChangedAidsParameters_ChangesConsumptionPattern`
+28. `FrLbr001_WageStickyDownward_SlowToDecreaseInSlack` — wages resist downward adjustment even with labor surplus
+29. `FrLbr001_WageInfluencedBy_SectorConditionsLaborScarcityProfitability` — wage determinants include sector-level conditions
+30. `FrLbr002_WorkerMobility_CrossSectorOverTime` — workers move between sectors gradually
+31. `FrPrc003_SectorSpecificPrices_TrackedSeparately` — each sector maintains its own price level
 
 **GREEN — implement to make tests pass:**
-1. Implement `LaborMarket` — job posting, matching, employment tracking (parameters from `IDataProvider`)
+1. Implement `LaborMarket` — job posting (firms + government), matching, employment tracking, public/private split (parameters from `IDataProvider`)
 2. Implement `ProductionEngine` — demand estimation, input checking, production (parameters from `IDataProvider`)
 3. Implement `PricingEngine` — unit labor cost, unit material cost, markup with demand
    adjustment, three-buffer inflation logic per Architecture §3.10 (markup rates, minimum
    markup, and capacity thresholds from `IDataProvider`)
-4. Implement `GoodsMarket` — disposable income, hierarchical needs purchasing, price elasticity, inventory sales (needs hierarchy from `IDataProvider`)
-5. Wire all transactions through the Ledger
+4. Implement `ConsumptionEngine` — AIDS demand computation per Architecture §3.13 (alpha, beta, gamma parameters per household class from `IDataProvider`; budget share computation, nominal demand derivation, edge case handling)
+5. Implement `GovernmentDemand` — spending-to-resource mapping per Architecture §3.14 (public employment postings, sector procurement demand, from `IDataProvider`)
+6. Implement `GoodsMarket` — receive AIDS demand vector + government procurement, match against sector inventory/capacity, rationing when demand exceeds supply
+7. Wire all transactions through the Ledger
 
 **REFACTOR:** Extract market interfaces for testability. Simplify pricing calculation chain.
 
 **Dependencies:** Phase 3
 
-**Definition of done:** All tests pass. A full cycle works: firms hire → produce → price → households buy. All transactions in ledger. SFC check passes. Tests 16–17 prove data-driven behavior.
+**Definition of done:** All tests pass. A full cycle works: firms + government hire → produce → price → AIDS demand → households + government buy. All transactions in ledger. SFC check passes. Government employment tracked separately. Tests 26-27 prove data-driven behavior. Tests 28-31 verify wage stickiness, wage determinants, cross-sector mobility, and sector-specific pricing.
 
 ---
 
@@ -301,6 +318,7 @@ Phase 15: Balancing & Polish
 12. `FrBnk004_BorrowerCannotPay_DefaultTriggered`
 13. `FrBnk004_Default_LoanWrittenOff`
 14. `FrMod001_ChangedBankSpread_AffectsLendingRate`
+15. `FrAgt004_DebtCapacity_VariesByHouseholdClass` — different classes have different borrowing limits
 
 **GREEN — implement to make tests pass:**
 1. Implement creditworthiness assessment (income, debt-to-income ratio, collateral, risk premium — thresholds from `IDataProvider`)
@@ -371,6 +389,11 @@ Phase 15: Balancing & Polish
 11. `FrTim002_PriceAdjustment_GradualOverMultipleTicks`
 12. `FrMod001_ChangedDepreciationRate_AffectsCapitalDecay`
 13. `FrMod001_ChangedLagDuration_AffectsPolicyTiming`
+14. `FrAgt001_InfrastructureIncrease_ConstructionSectorPressureRises` — government spending allocation shifts resource competition
+15. `FrInv002_CapitalGoods_ProducedByManufacturingSector` — capital goods originate from manufacturing
+16. `FrTim002_HiringFiring_LagsOneToTwoTicks` — employment changes take 1-2 ticks
+17. `FrTim002_InvestmentToCapacity_LagsThreeToSixTicks` — investment translates to capacity over 3-6 ticks
+18. `FrTim002_HouseholdSpendingAdjustment_LagsOneTick` — household spending responds with 1 tick delay
 
 **GREEN — implement to make tests pass:**
 1. Implement public investment per Architecture Section 3.9 (infrastructure → capacity, public services → productivity — rates from `IDataProvider`)
@@ -407,31 +430,44 @@ Phase 15: Balancing & Polish
 9. `FrPrc002_SpendingBeyondCapacity_CausesInflation`
 10. `FrPrc002_ProgressiveBufferExhaustion_InflationEmergesGradually`
 11. `FrLbr003_InsufficientSpending_CausesUnemployment`
-12. `FrSim003_QueryByPath_ReturnsCorrectValues`
-13. `FrCtl001_SetSpendingLevel_AcceptedAndQueued`
-14. `FrCtl001_SetTaxRate_AcceptedAndQueued`
+12. `FrCon002_QueryByPath_GovernmentTaxRate_ReturnsDecimal`
+13. `FrCon002_QueryByPath_FirmSectorById_ReturnsDictionary`
+14. `FrCon002_QueryByPath_HouseholdClassById_ReturnsProperties`
+15. `FrCon002_QueryByPath_AllIndicators_MatchTypedAccess`
+16. `FrCon002_QueryByPath_InvalidPath_ReturnsNull`
+17. `FrCtl001_SetSpendingLevel_AcceptedAndQueued`
+18. `FrCtl001_SetTaxRate_AcceptedAndQueued`
+19. `FrSim004_UnemploymentRate_CalculatedCorrectly`
+20. `FrSim004_BondYields_WeightedAverageCouponRate` — weighted average coupon rate across outstanding bonds
+21. `FrSim004_SavingsRate_CalculatedCorrectly`
+22. `FrSim004_WageGrowth_CalculatedAsPercentChange`
+23. `FrSim004_BankReserves_CalculatedCorrectly`
 
 **Property-based tests:**
-15. `Property_AnySeedAnyPolicySequence_SfcHoldsEveryTick`
-16. `Property_AnyValidConfig_NoNegativePrices`
-17. `Property_AnyValidConfig_EmploymentRateInZeroToOne`
-18. `Property_AnyValidConfig_MoneyStockConsistent`
+24. `Property_AnySeedAnyPolicySequence_SfcHoldsEveryTick`
+25. `Property_AnyValidConfig_NoNegativePrices`
+26. `Property_AnyValidConfig_EmploymentRateInZeroToOne`
+27. `Property_AnyValidConfig_MoneyStockConsistent`
+28. `Property_AnyPriceVector_BudgetSharesSumToOne` — AIDS adding-up holds
+29. `Property_AnyIncomeLevel_NoBudgetShareNegative` — no invalid shares
+30. `Property_GovernmentSpending_ResourceDemandMatchesAllocation` — spending maps to correct sectors
 
 **Integration test:**
-19. `Integration_120TickSimulation_SfcConsistentEveryTick_SensibleDynamics`
+31. `Integration_120TickSimulation_SfcConsistentEveryTick_SensibleDynamics`
 
 **GREEN — implement to make tests pass:**
 1. Implement `TickEngine` — orchestrate phases in order: Government → Production → Market → Financial → Accounting
 2. Implement `IndicatorCalculator` — employment, inflation, GDP, government balance, private balance, capacity utilization, ULC, private debt, all other PRD indicators
-3. Implement `SimulationState` — read-only state container, path-based query system (`QueryByPath`)
+3. Implement `SimulationState` — read-only state container, `StatePathResolver` with reflection-based path resolution (Architecture §6.6)
 4. Implement `SimulationCommands` — policy change handlers, console command routing
 5. Implement `ISimulationFactory` — create simulation from `IDataProvider` + optional seed, wire seed to `SeededRandom` and inject as `IRandom` (Architecture §3.12) into all components
+6. Create `TestData/Scenarios/` fixture files: `high-inflation.json` (high initial prices, exhausted buffers), `high-unemployment.json` (low demand, excess labor supply), `steady-state.json` (balanced economy near equilibrium). These configure initial conditions for integration tests that verify behavior under specific economic states.
 
 **REFACTOR:** Optimize tick execution. Extract indicator calculation patterns.
 
 **Dependencies:** Phases 2–7
 
-**Definition of done:** All tests pass including property-based tests. A 120-tick (10 year) simulation runs end-to-end with sensible economic dynamics. SFC consistency holds every tick. All 4 property-based invariants pass across random seeds.
+**Definition of done:** All tests pass including property-based tests. A 120-tick (10 year) simulation runs end-to-end with sensible economic dynamics. SFC consistency holds every tick. All property-based invariants pass across random seeds. `QueryByPath` resolves all paths defined in Architecture §6.6.
 
 ---
 
@@ -499,6 +535,7 @@ Phase 15: Balancing & Polish
    - Line chart component with scrolling time window
    - Support multiple data series per chart
    - Create charts for: employment rate, inflation rate, GDP, government balance, private savings, sector output
+   - Bind charts to typed `ISimulationState` / `IEconomicIndicators` properties directly — do **not** use `QueryByPath` (see Architecture §6.6)
 3. Implement `BalanceSheetPanel`:
    - Read `ISimulationState.SectorBalanceSheets` (keyed by `EconomicSector`)
    - Table display for each sector's balance sheet
@@ -531,7 +568,7 @@ Phase 15: Balancing & Polish
    - Split command into verb + arguments
    - Route to appropriate handler
 3. Implement query commands:
-   - `query <path>` — reads from SimulationState.QueryByPath()
+   - `query <path>` — reads from `SimulationState.QueryByPath()` (path schema: Architecture §6.6)
    - `balance <sector>` — formats and displays balance sheet
    - `sfc check` — runs consistency check
 4. Implement write commands:
@@ -593,14 +630,15 @@ Phase 15: Balancing & Polish
 
 **Tasks:**
 1. Create simple 2D map asset (single province, modern/contemporary style)
-2. Implement `MapView` scene:
+2. Populate `data/base/map/default-map.json` with single-province definition (name, boundaries, resource metadata)
+3. Implement `MapView` scene:
    - Display map texture
    - Province boundary rendering
    - Basic zoom/pan
-3. Add data overlays (optional MVP stretch):
+4. Add data overlays (optional MVP stretch):
    - Employment heat map coloring
    - Economic activity indicator
-4. Integrate into main scene layout
+5. Integrate into main scene layout
 
 **Testing:** Manual verification — map renders, zoom/pan works.
 
@@ -618,7 +656,7 @@ Phase 15: Balancing & Polish
 1. Tune economic parameters in `data/base/` JSON files:
    - Starting values for all sectors, classes, resources
    - Markup rates, productivity values, depreciation rates
-   - Consumption propensities, reservation wages
+   - AIDS parameters (alpha, beta, gamma per household class), reservation wages
    - Investment thresholds, lending criteria
 2. Run extended simulations (100+ years) and check for:
    - Stability (does the economy reach a steady state without intervention?)

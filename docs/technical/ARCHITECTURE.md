@@ -72,6 +72,7 @@ This is the heart of the game. It contains all economic logic, agent behavior, a
 - Concrete implementations: Government, CentralBank, CommercialBank, Household, Firm
 - Agent registry for looking up and iterating agents
 - Agent behavior logic (production decisions, consumption, hiring, lending)
+- Government participates as direct employer and procurer (see Section 3.14)
 
 **Investment Engine**
 - Processes public investment effects (infrastructure → capacity, public services → productivity) with data-driven lag durations via `IPolicyPipeline`
@@ -89,8 +90,8 @@ This is the heart of the game. It contains all economic logic, agent behavior, a
 - Transaction log for debugging and console inspection
 
 **Markets**
-- Labor market: wage posting, job matching
-- Goods market: pricing, buying, selling, inventory
+- Labor market: wage posting (firms + government), job matching
+- Goods market: AIDS-driven demand + government procurement, selling, inventory
 - Bond market: auction mechanism, bidding
 
 **Data Layer**
@@ -160,7 +161,8 @@ public interface ISimulationState
     IReadOnlyDictionary<EconomicSector, IBalanceSheet> SectorBalanceSheets { get; }
     IReadOnlyList<IPendingPolicy> PolicyPipeline { get; }
 
-    // For console: query any value by path
+    /// Query any simulation value by dot-separated path. See Section 6.6 for the
+    /// full path schema, naming conventions, return types, and error behavior.
     object QueryByPath(string path);
 }
 ```
@@ -212,6 +214,10 @@ public interface IGovernmentState
     decimal SpendingLevel { get; }
     SpendingAllocation Allocation { get; }
     decimal BondsOutstanding { get; }
+    int PublicSectorEmployment { get; }
+    IReadOnlyDictionary<string, int> PublicEmploymentByFunction { get; }
+    decimal GovernmentWageRate { get; }
+    IReadOnlyDictionary<string, decimal> ProcurementBySector { get; }
     IBalanceSheet BalanceSheet { get; }
 }
 
@@ -261,7 +267,9 @@ public interface IHouseholdClassState : IAgent
     int Population { get; }
     int Employed { get; }
     decimal AverageIncome { get; }
-    decimal ConsumptionSpending { get; }
+    IReadOnlyDictionary<string, decimal> BudgetShares { get; }
+    IReadOnlyDictionary<string, decimal> ConsumptionBySector { get; }
+    decimal TotalConsumption { get; }
     decimal SavingsBalance { get; }
     decimal DebtBalance { get; }
 }
@@ -290,6 +298,8 @@ public interface IEconomicIndicators
     IReadOnlyDictionary<string, decimal> UnitLaborCostsBySector { get; }
     decimal PrivateDebtLevel { get; }
     decimal BankReserves { get; }
+    /// Public sector workers / Total employed workers.
+    decimal PublicSectorEmploymentShare { get; }
     /// Weighted average coupon rate across outstanding bonds (no secondary market in MVP).
     /// Formula: Σ(bond.CouponRate × bond.FaceValue) / Σ(bond.FaceValue). Returns 0 when no bonds outstanding.
     /// Pedagogically valuable: demonstrates the MMT insight that bond rates are policy-influenced
@@ -466,7 +476,7 @@ public interface IInvestmentEngine
     /// Evaluates and executes private firm investment decisions.
     /// Firms invest when capacity utilization exceeds a data-driven threshold
     /// and they have retained profits or can obtain bank credit.
-    /// Capital goods are purchased from the industry sector (inter-sector demand).
+    /// Capital goods are purchased from the manufacturing sector (inter-sector demand).
     /// Called during Production Phase before production occurs.
     void ProcessPrivateInvestment(ILedger ledger);
 
@@ -561,6 +571,98 @@ public interface IRandom
 
 `SeededRandom` wraps `System.Random` with a caller-provided seed. `ISimulationFactory.Create(data, seed)` instantiates `SeededRandom` and injects it into components that need stochastic behavior. In tests, a fixed seed guarantees deterministic replay — Phase 8's property-based tests (e.g., `Property_AnySeedAnyPolicySequence_SfcHoldsEveryTick`) depend on this for reproducibility across runs.
 
+### 3.13 Consumption Engine (AIDS)
+
+The `ConsumptionEngine` implements the Almost Ideal Demand System (Deaton & Muellbauer, 1980) for household consumption. It determines how each household class allocates its budget across production sectors based on current prices and real income.
+
+```csharp
+public interface IConsumptionEngine
+{
+    /// Computes budget shares and nominal demand per sector for each household class
+    /// using the AIDS model. Reads current prices from firm sectors, income from
+    /// household classes, and AIDS parameters (alpha, beta, gamma) from IDataProvider.
+    /// Called during Market Phase after PricingEngine.SetPrices().
+    void ComputeDemand();
+
+    /// Budget shares by household class and sector (output of last ComputeDemand call).
+    /// Used by GoodsMarket to execute purchases and by UI for visualization.
+    IReadOnlyDictionary<string, IReadOnlyDictionary<string, decimal>> BudgetSharesByClass { get; }
+
+    /// Nominal demand by household class and sector (budget share × disposable income).
+    IReadOnlyDictionary<string, IReadOnlyDictionary<string, decimal>> NominalDemandByClass { get; }
+}
+```
+
+**AIDS formula** for household class _c_ and sector _i_:
+
+```
+w_ci = alpha_ci + SUM_j(gamma_cij * ln(p_j)) + beta_ci * ln(M_c / P)
+```
+
+Where `w_ci` is the budget share, `alpha_ci` is the intercept, `gamma_cij` captures price effects, `beta_ci` captures income effects, `M_c` is disposable income, and `P` is the Stone price index.
+
+**Per-class parameterization:** Each household class has its own alpha, beta, and gamma parameters loaded from `IDataProvider` (`economy/consumption.json`). This reflects empirical evidence that preferences differ structurally across income groups.
+
+**Theoretical constraints** (enforced by data validation at load time):
+1. **Adding-up:** `SUM_i(alpha_ci) = 1`, `SUM_i(gamma_cij) = 0`, `SUM_i(beta_ci) = 0`
+2. **Homogeneity:** `SUM_j(gamma_cij) = 0` for each _i_
+3. **Symmetry:** `gamma_cij = gamma_cji`
+
+**Edge cases:**
+- Near-zero income: epsilon floor on real income before `ln(M/P)` to prevent undefined behavior
+- Extreme prices: budget shares clamped to `[0, 1]` and renormalized to sum to 1
+
+**Data-driven parameters** (per class, per sector, loaded from `IDataProvider`):
+- `alpha` vector — intercept budget shares at reference prices/income
+- `beta` vector — income response (how budget shares shift with real income)
+- `gamma` matrix — price response (own-price and cross-price effects, symmetric)
+
+**Phase:** Market Phase (after `PricingEngine.SetPrices()`, before household purchasing). See Section 4.1 tick data flow.
+
+### 3.14 Government Demand
+
+The government participates in the real economy through two channels: direct employment and sector procurement. This creates resource competition with the private sector — the core mechanism demonstrating the MMT insight that the real constraint on government spending is available real resources, not financial capacity.
+
+```csharp
+public interface IGovernmentDemand
+{
+    /// Public sector job postings by spending function (infrastructure, publicServices).
+    /// Each posting specifies wage rate and labor quantity.
+    /// Registered with LaborMarket during Government Phase.
+    IReadOnlyList<GovernmentJobPosting> JobPostings { get; }
+
+    /// Procurement demand by sector, computed from current spending allocation.
+    /// Added to household demand in the Market Phase.
+    IReadOnlyDictionary<string, decimal> ProcurementBySector { get; }
+
+    /// Compute government resource demand from current spending allocation.
+    /// Called during Government Phase after spending is executed.
+    void ComputeResourceDemand(decimal infrastructureSpending, decimal publicServicesSpending);
+}
+
+public class GovernmentJobPosting
+{
+    public string Function { get; }       // "infrastructure" or "publicServices"
+    public decimal WageRate { get; }      // Data-driven pay scale
+    public int LaborDemand { get; }       // Number of workers sought
+}
+```
+
+**Spending-to-resource mapping** (data-driven, loaded from `IDataProvider` via `agents/government.json`):
+
+| Spending category | Public employment | Sector procurement | Notes |
+|---|---|---|---|
+| Infrastructure | Engineers, planners (share of spending) | Construction, manufacturing (share of spending) | Both channels compete for real resources |
+| Public services | Teachers, doctors, admin (share of spending) | Equipment, outsourced services (share of spending) | Labor-intensive |
+| Direct transfers | None | None | No direct resource competition; flows to household income → AIDS demand |
+
+**Government wage behavior:**
+- Pay scale is data-driven, loaded from `IDataProvider`
+- Adjusts more slowly than private sector wages (civil service stickiness parameter)
+- Creates a de facto wage floor — private firms must offer competitive wages or lose workers to the public sector
+
+**Phase:** Government Phase (after spending execution, before Production Phase). Job postings enter the labor market pool alongside firm postings. Procurement demand is served during Market Phase alongside household AIDS demand.
+
 ## 4. Data Flow
 
 ### 4.1 Simulation Tick
@@ -578,6 +680,9 @@ Tick Engine
     │   ├── Collect taxes → Ledger.RecordTransaction (Deposits: taxpayer → bank) then (Reserves: bank → treasury)
     │   ├── Execute spending → Ledger.RecordTransaction (Reserves: treasury → bank) then (Deposits: bank → recipient)
     │   ├── Process public investment → InvestmentEngine.ProcessPublicInvestment()
+    │   ├── Compute government resource demand from spending allocation:
+    │   │   ├── Register public sector job postings with LaborMarket
+    │   │   └── Register procurement demand with sectors
     │   ├── Pay bond interest → Ledger.RecordTransaction (Reserves + Deposits)
     │   └── Bond auction → BondMarket.RunAuction()
     │
@@ -588,7 +693,8 @@ Tick Engine
     │   │   └── (Production targets increase up to available capacity,
     │   │        absorbing demand as output growth — FR-PRC-002 buffer 2)
     │   ├── Firms post wages → LaborMarket.PostJobs()
-    │   ├── Households accept jobs → LaborMarket.MatchJobs()
+    │   ├── Government posts wages → LaborMarket.PostGovernmentJobs()
+    │   ├── Households evaluate ALL postings (firm + government) → LaborMarket.MatchJobs()
     │   └── Production occurs → Firms produce output
     │
     ├── 3. Market Phase
@@ -597,7 +703,10 @@ Tick Engine
     │   │   ├── Markup adjusted for demand (buffer 2: no increase if slack exists)
     │   │   ├── Cost increases absorbed by margin compression (buffer 3: markup → min)
     │   │   └── Residual pressure → price change
-    │   ├── Households purchase goods (hierarchical needs)
+    │   ├── ConsumptionEngine.ComputeDemand() → AIDS budget shares × income = demand per sector
+    │   ├── Government procurement demand added to sector demand
+    │   ├── Households purchase from sectors based on computed demand
+    │   ├── Firms sell from inventory to meet combined demand (household + government)
     │   └── Transactions recorded → Ledger.RecordTransaction
     │
     ├── 4. Financial Phase
@@ -695,13 +804,14 @@ game/
 │   │   │   ├── Household.cs
 │   │   │   └── Firm.cs
 │   │   ├── Markets/
-│   │   │   ├── LaborMarket.cs        # Wage posting and matching
-│   │   │   ├── GoodsMarket.cs        # Buying and selling
+│   │   │   ├── LaborMarket.cs        # Wage posting (firms + government) and matching
+│   │   │   ├── GoodsMarket.cs        # AIDS demand + government procurement, selling, rationing
 │   │   │   └── BondMarket.cs         # Bond auction
 │   │   ├── Economics/
 │   │   │   ├── PricingEngine.cs      # Cost-plus markup calculation
 │   │   │   ├── ProductionEngine.cs   # Production function
 │   │   │   ├── InvestmentEngine.cs   # Public/private investment and depreciation
+│   │   │   ├── ConsumptionEngine.cs  # AIDS demand system
 │   │   │   └── IndicatorCalculator.cs # GDP, inflation, etc.
 │   │   └── Data/
 │   │       ├── IDataProvider.cs      # Data loading interface
@@ -709,7 +819,8 @@ game/
 │   │       └── Models/              # Data models for JSON deserialization
 │   │           ├── SectorData.cs
 │   │           ├── HouseholdData.cs
-│   │           ├── GoodsData.cs
+│   │           ├── ConsumptionData.cs # AIDS parameters (alpha, beta, gamma per class)
+│   │           ├── GovernmentDemandData.cs # Spending-to-resource mapping
 │   │           ├── InvestmentData.cs
 │   │           ├── PricingData.cs     # Per-sector markup parameters and thresholds
 │   │           └── ScenarioData.cs
@@ -780,14 +891,12 @@ game/
 │   │       ├── FullBase/             # Copy of data/base/ for integration tests
 │   │       ├── InvalidData/          # Malformed files for error handling tests
 │   │       └── Scenarios/            # Specific economic states (high-inflation, etc.)
-│   └── Game.Tests/                   # Integration tests that may need Godot
-│       └── Game.Tests.csproj
 │
 ├── data/
 │   └── base/                         # Base game data (JSON files)
 │       ├── economy/
 │       │   ├── sectors.json
-│       │   ├── goods.json
+│       │   ├── consumption.json    # AIDS parameters per household class
 │       │   ├── production.json
 │       │   └── parameters.json
 │       ├── agents/
@@ -894,17 +1003,100 @@ All simulation components receive their dependencies via constructor injection. 
 - `IPolicyPipeline` — policy change queuing and lag tracking (durations from `IDataProvider`)
 - `IInvestmentEngine` — public/private investment processing and capital depreciation (rates and thresholds from `IDataProvider`)
 - `IPricingEngine` — cost-plus pricing with three-buffer inflation logic (markup parameters and capacity thresholds from `IDataProvider`)
+- `IConsumptionEngine` — AIDS demand computation (parameters per household class from `IDataProvider`)
+- `IGovernmentDemand` — government employment and procurement demand (spending-to-resource mapping from `IDataProvider`)
 
 Example: a `Firm` receives `ILedger` and `IDataProvider` in its constructor. In production, these are the real implementations wired through `ISimulationFactory`. In tests, they are in-memory fakes that allow precise control over inputs and verification of outputs.
 
 ### 6.6 Path-Based State Access
 
-All simulation state is queryable by a dot-separated path (e.g., `firms.agriculture.price`). This is used by:
-- The console (`query firms.agriculture.price`)
-- The data binding system (charts can reference `economy.inflation_rate`)
-- Future mod scripts
+`ISimulationState.QueryByPath(string path)` provides string-addressed access to any simulation value. It exists primarily for the **console** (`query firms.agriculture.currentPrice`) and **future mod scripts** — consumers where the path is a runtime string. The chart/UI system should use typed access via `ISimulationState` properties directly (see Section 6.3).
 
-Implemented via a state tree or registry that maps paths to getters.
+#### Path Schema
+
+Paths are dot-separated, lowercase segments. Property names use **camelCase** versions of the C# interface property names.
+
+**Structure:**
+
+```
+<root>.<property>                          → scalar value
+<root>.<collection>.<id>.<property>        → scalar value from a specific agent
+<root>.<collection>.<id>                   → all properties as IReadOnlyDictionary<string, object>
+<root>                                     → all properties as IReadOnlyDictionary<string, object>
+```
+
+**Root paths and their source interfaces:**
+
+| Root | Source Interface | Collection Key |
+|---|---|---|
+| `time` | `CurrentMonth`, `CurrentYear` on `ISimulationState` | — |
+| `government` | `IGovernmentState` | — |
+| `centralbank` | `ICentralBankState` | — |
+| `banks` | `IBankingState` | — |
+| `firms.<sectorId>` | `IFirmSectorState` | `SectorId` (e.g., `agriculture`, `manufacturing`, `construction`, `services`) |
+| `households.<classId>` | `IHouseholdClassState` | `ClassId` (e.g., `low`, `middle`, `high`) |
+| `indicators` | `IEconomicIndicators` | — |
+
+**Example paths and return types:**
+
+| Path | Returns | C# Type |
+|---|---|---|
+| `time.month` | Current month | `int` |
+| `time.year` | Current year | `int` |
+| `government.taxRate` | Current tax rate | `decimal` |
+| `government.bondsOutstanding` | Total bonds outstanding | `decimal` |
+| `centralbank.policyRate` | CB policy rate | `decimal` |
+| `banks.reserves` | Bank reserve balance | `decimal` |
+| `banks.lendingRate` | Current lending rate | `decimal` |
+| `firms.agriculture.currentPrice` | Agriculture sector price | `decimal` |
+| `firms.manufacturing.capacityUtilization` | Manufacturing capacity utilization | `decimal` |
+| `firms.construction` | All construction properties | `IReadOnlyDictionary<string, object>` |
+| `government.publicSectorEmployment` | Total public sector employees | `int` |
+| `government.governmentWageRate` | Public sector wage rate | `decimal` |
+| `government.procurementBySector` | Procurement demand per sector | `IReadOnlyDictionary<string, decimal>` |
+| `households.low.employed` | Low-class employed count | `int` |
+| `households.low.budgetShares` | Low-class AIDS budget shares per sector | `IReadOnlyDictionary<string, decimal>` |
+| `households.low.consumptionBySector` | Low-class nominal spending per sector | `IReadOnlyDictionary<string, decimal>` |
+| `indicators.gdp` | Current GDP | `decimal` |
+| `indicators.inflationRate` | Current inflation rate | `decimal` |
+| `indicators.publicSectorEmploymentShare` | Public / total employment | `decimal` |
+| `indicators.capacityUtilizationBySector` | Sector utilization map | `IReadOnlyDictionary<string, decimal>` |
+
+The full set of leaf properties is defined by the corresponding `*State` / `IEconomicIndicators` interfaces in Section 3.3. Any property added to those interfaces automatically becomes a valid path leaf — the schema is **interface-derived**, not independently maintained.
+
+#### Error Behavior
+
+| Condition | Result |
+|---|---|
+| Valid path to a scalar | Returns the value (typed as `decimal`, `int`, `string`, etc.) |
+| Valid path to a collection node | Returns `IReadOnlyDictionary<string, object>` of all child properties |
+| Invalid path (typo, nonexistent property) | Returns `null` |
+| `null` or empty path | Returns `null` |
+
+No exceptions are thrown across the `QueryByPath` boundary. Console consumers display `"(not found)"` for `null` results.
+
+#### Implementation Strategy
+
+The resolver is built once at simulation creation using **reflection with caching**:
+
+```csharp
+class StatePathResolver
+{
+    // Built at construction time by walking ISimulationState's interface tree.
+    // For indexed collections (FirmSectors, HouseholdClasses), paths are registered
+    // using the agent's SectorId/ClassId as the key segment.
+    // Each entry is a compiled Func<ISimulationState, object> — no per-query reflection cost.
+    private readonly Dictionary<string, Func<ISimulationState, object>> _resolvers;
+
+    public object Resolve(ISimulationState state, string path);
+}
+```
+
+The resolver must be rebuilt when the agent list changes (e.g., loading a different scenario with different sectors). In practice this only happens at simulation creation.
+
+#### Chart / UI Binding
+
+The chart and UI systems do **not** use `QueryByPath`. They read typed properties directly from `ISimulationState` (see Section 6.3). This keeps the UI compile-time safe and avoids string-path fragility. `QueryByPath` is reserved for the console and future mod/script consumers where paths are inherently runtime strings.
 
 ## 7. Technology Stack
 
@@ -988,7 +1180,7 @@ tests/Simulation.Tests/
 ├── TestData/
 │   ├── Minimal/          # 1 sector, 1 household class — bare minimum valid data
 │   │   ├── sectors.json
-│   │   ├── goods.json
+│   │   ├── consumption.json
 │   │   ├── households.json
 │   │   ├── firms.json
 │   │   ├── banks.json

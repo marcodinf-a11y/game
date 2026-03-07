@@ -30,18 +30,18 @@ The model explicitly tracks two layers of money, reflecting how modern monetary 
 ### Central Bank Money (Reserves)
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                    CENTRAL BANK LEDGER                        │
-│                                                              │
-│   Treasury Account          Bank Reserve Accounts            │
-│   ┌─────────────┐          ┌─────────────┐                  │
-│   │ Government   │          │ Bank A      │                  │
-│   │ balance      │          │ reserves    │                  │
-│   └─────────────┘          ├─────────────┤                  │
-│                             │ Bank B      │                  │
-│                             │ reserves    │                  │
-│                             └─────────────┘                  │
-└──────────────────────────────────────────────────────────────┘
++--------------------------------------------------------------+
+|                    CENTRAL BANK LEDGER                        |
+|                                                               |
+|   Treasury Account          Bank Reserve Accounts             |
+|   +--------------+         +--------------+                   |
+|   | Government   |         | Bank A       |                   |
+|   | balance      |         | reserves     |                   |
+|   +--------------+         +--------------+                   |
+|                             | Bank B       |                   |
+|                             | reserves     |                   |
+|                             +--------------+                   |
++--------------------------------------------------------------+
 ```
 
 - The **Treasury** (government) holds an account at the central bank.
@@ -62,20 +62,22 @@ The model explicitly tracks two layers of money, reflecting how modern monetary 
 ### Deposit Money (Bank Deposits)
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                  COMMERCIAL BANK LEDGERS                      │
-│                                                              │
-│   Household Accounts         Firm Accounts                   │
-│   ┌─────────────┐          ┌─────────────┐                  │
-│   │ Low income   │          │ Agri firms  │                  │
-│   ├─────────────┤          ├─────────────┤                  │
-│   │ Mid income   │          │ Industry    │                  │
-│   ├─────────────┤          ├─────────────┤                  │
-│   │ High income  │          │ Services    │                  │
-│   └─────────────┘          └─────────────┘                  │
-│                                                              │
-│   This is the only money households and firms see.           │
-└──────────────────────────────────────────────────────────────┘
++--------------------------------------------------------------+
+|                  COMMERCIAL BANK LEDGERS                      |
+|                                                               |
+|   Household Accounts         Firm Accounts                    |
+|   +--------------+         +--------------+                   |
+|   | Low income   |         | Agriculture  |                   |
+|   +--------------+         +--------------+                   |
+|   | Mid income   |         | Manufacturing|                   |
+|   +--------------+         +--------------+                   |
+|   | High income  |         | Construction |                   |
+|   +--------------+         +--------------+                   |
+|                             | Services     |                   |
+|                             +--------------+                   |
+|                                                               |
+|   This is the only money households and firms see.            |
++--------------------------------------------------------------+
 ```
 
 - Households and firms hold deposit accounts at commercial banks.
@@ -119,6 +121,26 @@ The currency-issuing sovereign. The player controls this sector.
 - Set tax rate
 - Set spending level and allocation
 
+**Government as employer and procurer:**
+
+The government participates in the real economy through two channels:
+
+1. **Direct employment** — The government hires workers from the labor pool, competing with private firms. Public teachers, healthcare workers, engineers, administrators, and planners are government employees. Government wage rates are set by a data-driven pay scale that adjusts more slowly than private sector wages (civil service stickiness). Public sector employment is tracked separately from private employment.
+
+2. **Procurement** — The government purchases goods and services from private sectors. Infrastructure spending creates demand for construction output and manufacturing materials. Public services may procure equipment and outsource certain functions.
+
+**Spending allocation maps to real resources as follows:**
+
+| Spending category | Public employment | Sector procurement | Direct resource competition |
+|---|---|---|---|
+| **Infrastructure** | Engineers, planners, project managers | Construction output, manufacturing materials | Yes — competes for construction workers and sector capacity |
+| **Public services** | Teachers, doctors, administrators | Equipment (manufacturing), outsourced services | Yes — competes for skilled service and manufacturing workers |
+| **Direct transfers** | None | None | No — money flows to households who spend via AIDS demand system |
+
+This distinction is central to the MMT argument. Transfers increase household income and create demand distributed across sectors via the AIDS consumption model. Infrastructure and public services directly absorb real resources — labor and sector output. The same dollar amount produces very different economic effects depending on its composition.
+
+The government's wage offers create a de facto wage floor. If the government pays 3,000/month for public service workers, private firms offering significantly less will lose workers. This demonstrates how fiscal policy sets an implicit minimum wage — a key MMT/post-Keynesian insight and the precursor to the Job Guarantee's role as a wage anchor (post-MVP).
+
 ### Central Bank
 
 Operates the reserve system and sets monetary policy.
@@ -148,13 +170,15 @@ Intermediate between the reserve and deposit circuits. Create credit.
 - Pay interest on deposits (if modeled)
 - Lending rate = central bank policy rate + risk-based spread
 
+Banking is modeled as financial intermediation, not as a production sector. Banks do not produce output that households consume. Their function is to create purchasing power (credit money) that enables real economic activity. This is consistent with the MMT/post-Keynesian SFC tradition (Godley & Lavoie) where the banking sector has a balance sheet and behavioral rules, not a production function. Bank revenue (interest spread) appears on balance sheets through interest flows, not through the AIDS demand system.
+
 ### Households (3 Classes in MVP)
 
 | Class | Characteristics |
 |---|---|
-| **Low income** | High propensity to consume. Spend most income on survival needs (food, housing). Minimal savings. May take on debt for necessities. |
-| **Middle income** | Moderate consumption and saving. Can afford comfort goods. Take on debt for housing (mortgages). Some discretionary spending. |
-| **High income** | Low propensity to consume (relative to income). Significant savings and investment. Spend on luxury goods/services. May buy government bonds. |
+| **Low income** | High propensity to consume. Budget share heavily weighted toward agriculture and basic manufacturing. Minimal savings. May take on debt for necessities. |
+| **Middle income** | Moderate consumption and saving. More balanced budget shares across sectors. Take on debt for housing (mortgages). Some discretionary spending on services. |
+| **High income** | Low propensity to consume (relative to income). Budget share shifts toward services and discretionary manufacturing. Significant savings. |
 
 **Balance sheet tracks:**
 - Deposit account at bank (asset)
@@ -162,21 +186,24 @@ Intermediate between the reserve and deposit circuits. Create credit.
 - Net wealth
 
 **Behavior:**
-- Supply labor to firms (see Labor Market)
-- Consume goods according to hierarchical needs (see Consumption)
+- Supply labor to firms and government (see Labor Market)
+- Consume according to the AIDS demand system — budget shares across sectors determined by income and prices (see Consumption Model)
 - Save surplus income
 - Borrow from banks when needed/eligible
 - Pay taxes on income
 
-### Firms (3 Sectors)
+### Firms (4 Sectors)
 
 All firms are profit-driven: they estimate demand, consider costs, and make production and hiring decisions to maximize profit.
 
-| Sector | Inputs | Outputs |
-|---|---|---|
-| **Agriculture** | Labor, land | Food (survival need), raw materials |
-| **Industry** | Labor, raw materials, capital goods | Manufactured goods (comfort need), capital goods (investment) |
-| **Services** | Labor, capital goods | Services (comfort/luxury need) |
+| Sector | Inputs | Outputs | Characteristics |
+|---|---|---|---|
+| **Agriculture & Primary** | Labor, land | Food, raw materials | Land-constrained, seasonal, low labor elasticity. Small GDP share but essential. |
+| **Manufacturing** | Labor, raw materials, capital goods | Manufactured goods, capital goods | Capital-intensive. Produces both consumer goods and investment goods for all sectors. |
+| **Construction** | Labor, manufactured materials, capital goods | Built structures, infrastructure | Highly cyclical, labor-intensive. Key channel for government infrastructure investment. |
+| **Services** | Labor, capital goods | Services (retail, transport, healthcare, education, hospitality, professional) | Labor-intensive, largest employment share. Heterogeneous but shares key input characteristics. |
+
+**Post-MVP sector expansion:** Sectors expand via a sub-sector hierarchy. Each top-level sector may contain sub-sectors with independent production functions and AIDS demand parameters. For example, Services may split into Healthcare, Education, Hospitality, and Professional Services. Sub-sectors are identified by a `parentId` field in `sectors.json`. The AIDS demand system extends naturally — a 4-sector parameter matrix becomes an 8-sector or 12-sector matrix.
 
 **Balance sheet tracks:**
 - Deposit account at bank (asset)
@@ -202,17 +229,17 @@ All firms are profit-driven: they estimate demand, consider costs, and make prod
 Prices are based on **unit costs**, not raw input prices. This is critical: wage increases alone do not cause inflation if productivity keeps pace.
 
 ```
-Price = (Unit labor cost + Unit material cost) × (1 + markup)
+Price = (Unit labor cost + Unit material cost) x (1 + markup)
 
 Where:
   Unit labor cost = Total wages paid / Total output produced
   Unit material cost = Total material costs / Total output produced
-  Markup = Base markup × Demand adjustment factor
+  Markup = Base markup x Demand adjustment factor
 ```
 
 **Demand adjustment factor:**
 - When demand < capacity (slack): markup tends toward base or below (competitive pressure)
-- When demand ≈ capacity: markup at base level
+- When demand ~ capacity: markup at base level
 - When demand > capacity (overheating): markup increases (sellers have pricing power)
 
 ### Three Buffers Against Inflation
@@ -225,7 +252,7 @@ Higher wages do NOT automatically cause inflation. Three mechanisms absorb wage 
 
 **Inflation occurs when:** all three buffers are exhausted — productivity can't keep up, there is no slack, and margins are already compressed. Then unit costs rise and firms pass them through as higher prices.
 
-### Unit Labor Costs (Lohnstückkosten)
+### Unit Labor Costs (Lohnstuckkosten)
 
 The model tracks unit labor costs per sector, not raw wages:
 
@@ -234,76 +261,116 @@ Unit labor cost = Wage rate / Labor productivity
 Labor productivity = Output / Workers employed
 ```
 
-- If wages rise 3% and productivity rises 3% → ULC unchanged → no price pressure
-- If wages rise 5% and productivity rises 2% → ULC rises 3% → cost-push price pressure
-- If wages rise 2% and productivity rises 4% → ULC falls 2% → prices can fall or margins improve
+- If wages rise 3% and productivity rises 3% -> ULC unchanged -> no price pressure
+- If wages rise 5% and productivity rises 2% -> ULC rises 3% -> cost-push price pressure
+- If wages rise 2% and productivity rises 4% -> ULC falls 2% -> prices can fall or margins improve
 
-## Consumption Model: Hierarchical Needs
+## Consumption Model: Almost Ideal Demand System (AIDS)
 
-Households fulfill needs in priority order, inspired by Maslow's hierarchy. Lower needs must be met before spending on higher needs.
+Household consumption is modeled using the Almost Ideal Demand System (Deaton & Muellbauer, 1980). AIDS determines how each household class allocates its budget across production sectors based on current prices and real income.
+
+### The AIDS Formula
+
+For household class _c_ and sector _i_:
 
 ```
-Priority 1: SURVIVAL (food, water, basic clothing)
-    → Purchased from: Agriculture sector
-    → All classes must fulfill this first
-    → Demand is highly inelastic (people buy food regardless of price)
-
-Priority 2: SHELTER (housing, utilities, basic infrastructure)
-    → Purchased from: Services + Industry sector
-    → Low income may struggle here; may require debt
-    → Somewhat inelastic
-
-Priority 3: COMFORT (manufactured goods, transportation, education, healthcare)
-    → Purchased from: Industry + Services sector
-    → Middle and high income reach this level
-    → Moderately elastic (responsive to price)
-
-Priority 4: LUXURY (premium services, leisure, financial assets)
-    → Purchased from: Services sector
-    → Primarily high income
-    → Highly elastic
+w_ci = alpha_ci + SUM_j(gamma_cij * ln(p_j)) + beta_ci * ln(M_c / P)
 ```
 
-**Spending logic per tick:**
-1. Calculate total disposable income (post-tax income + available credit - debt service)
-2. Allocate to survival needs at current market prices
-3. If income remains, allocate to shelter
-4. If income remains, allocate to comfort
-5. If income remains, allocate to luxury
-6. Remaining income → savings (deposits at bank)
+Where:
+- `w_ci` is the budget share household class _c_ spends on sector _i_ output
+- `alpha_ci` is the intercept — the baseline budget share at reference prices and income
+- `gamma_cij` captures how the budget share for sector _i_ responds to a change in sector _j_'s price (own-price and cross-price effects)
+- `beta_ci` captures how the budget share changes as real income changes (income elasticity)
+- `M_c` is disposable income for household class _c_ (post-tax income + available credit - debt service)
+- `P` is a price index (Stone price index: `ln(P) = SUM_i(w_ci * ln(p_i))`)
+- `p_j` is the price of sector _j_'s output
 
-**Class differences:**
-- **Low income:** Most/all income goes to survival and shelter. Little discretionary. May need debt for shelter.
-- **Middle income:** Fulfills survival and shelter comfortably. Some comfort spending. May take mortgage for housing.
-- **High income:** Fulfills all levels easily. Significant surplus goes to savings, bonds, or investment.
+### Parameter Constraints
+
+The AIDS model satisfies three theoretical constraints that ensure economic consistency:
+
+1. **Adding-up:** Budget shares sum to 1 for each class. `SUM_i(alpha_ci) = 1`, `SUM_i(gamma_cij) = 0`, `SUM_i(beta_ci) = 0`.
+2. **Homogeneity:** Demand is homogeneous of degree zero in prices and income (doubling all prices and income leaves budget shares unchanged). `SUM_j(gamma_cij) = 0` for each _i_.
+3. **Symmetry:** Cross-price effects are symmetric. `gamma_cij = gamma_cji`.
+
+These constraints reduce the effective number of free parameters and ensure the model produces economically meaningful results.
+
+### Per-Class Parameterization
+
+Each household class has its own set of alpha, beta, and gamma parameters. This reflects the empirical finding that preferences differ structurally across income groups — rich households don't just spend more, they spend _differently_ even at the same price levels.
+
+**Key behavioral properties that emerge from the parameters:**
+
+- **Engel's law:** Low-income households spend a larger budget share on agriculture (food). As income rises, the agriculture share declines (`beta_agriculture < 0`). This is one of the most robust findings in economics.
+- **Income elasticity:** Services budget share increases with income (`beta_services > 0`). Manufacturing and construction shares are relatively stable.
+- **Price elasticity:** When a sector's price rises, its budget share adjusts based on gamma parameters. Agriculture demand is price-inelastic (people buy food regardless of price). Services demand is more elastic.
+- **Cross-price substitution:** When manufacturing prices rise, some demand shifts to other sectors based on gamma cross-terms.
+
+### Empirical Foundation
+
+AIDS parameters are among the most empirically estimated in all of economics. The MVP uses parameters sourced from published estimates based on US household expenditure data (Consumer Expenditure Survey, Bureau of Labor Statistics). Key references include AIDS estimates by income group using CEX data and USDA Economic Research Service food demand elasticity estimates.
+
+Post-MVP, different country parameter sets (Germany, Brazil, Nigeria, etc.) can be loaded as scenario data files. Different countries have structurally different consumption patterns — a US economy is services-dominated (~77% of GDP) while a German economy has a significantly larger manufacturing share (~20% of GDP). These differences are captured entirely by different alpha, beta, gamma parameters.
+
+### Edge Cases
+
+- **Near-zero income:** The `ln(M/P)` term diverges as income approaches zero. A small epsilon floor is applied to real income before the logarithm to prevent undefined behavior. This is a numerical safeguard, not an economic subsistence floor — the welfare state (government transfers) is the policy mechanism that prevents destitution, and its absence should be visible as a crisis.
+- **Extreme prices:** Budget shares are clamped to `[0, 1]` after computation and renormalized to sum to 1. This prevents the model from producing economically meaningless negative demand at extreme price levels.
+
+### From Budget Shares to Nominal Demand
+
+Each tick, the consumption engine:
+
+1. Computes budget shares `w_ci` for each household class and sector using current prices and income
+2. Converts to nominal demand: `demand_ci = w_ci * M_c`
+3. Passes the demand vector to the goods market for fulfillment against sector inventory/capacity
+4. If demand exceeds supply, rationing occurs — unmet demand feeds into the next tick's price adjustments via the pricing engine
 
 ## Labor Market: Wage Posting
 
-Firms post job openings with an offered wage. Households decide whether to accept based on their circumstances.
+Firms and the government post job openings with an offered wage. Households decide whether to accept based on their circumstances.
 
-### Firm Side (Posting)
+### Employer Side (Posting)
+
+**Firms:**
 - Firms determine labor demand based on their production targets
 - Each firm posts a wage for open positions
 - Wage influenced by: sector conditions, competition for workers, profitability
 - Wages tend to rise when: labor is scarce, the sector is profitable, firms compete for workers
 - Wages tend to fall when: labor is abundant, profits are squeezed (but sticky downward — wage cuts are slow)
 
+**Government:**
+- Government determines labor demand based on spending allocation (infrastructure, public services)
+- Government posts wages based on a data-driven pay scale
+- Government wages adjust more slowly than private wages (civil service stickiness)
+- Government wage rates are not directly profit-driven — they follow policy-set pay scales
+- Government job postings enter the same labor market pool as firm postings
+
 ### Household Side (Accepting)
 - Each household class has a **reservation wage** (minimum acceptable wage)
 - Low income: lower reservation wage (desperate for work)
 - High income: higher reservation wage (can afford to be selective)
 - Households accept jobs that meet or exceed their reservation wage
-- Preference for higher-paying jobs; workers move to better-paying sectors over time
+- Preference for higher-paying jobs; workers choose between public and private employment based on offered wage
+- Workers move to better-paying sectors/employers over time
 
 ### Unemployment
-- Occurs when: firms don't post enough jobs, or posted wages are below reservation wages
+- Occurs when: employers (firms + government) don't post enough jobs, or posted wages are below reservation wages
 - Unemployment is involuntary when workers want to work but no suitable jobs exist
 - Unemployed households have zero wage income; rely on savings, transfers, or debt
 
 ### Wage Dynamics
-- Tight labor market (low unemployment) → wages rise as firms compete for workers
-- Loose labor market (high unemployment) → wages stagnate or fall slowly (downward rigidity)
+- Tight labor market (low unemployment) -> wages rise as employers compete for workers
+- Loose labor market (high unemployment) -> wages stagnate or fall slowly (downward rigidity)
 - Sector-specific: agriculture wages may differ from services wages
+- Government wages anchor the lower end of the distribution — private firms cannot push wages far below public pay without losing workers
+
+### Employment Tracking
+- Private sector employment tracked per sector (agriculture, manufacturing, construction, services)
+- Public sector employment tracked per spending function (infrastructure, public services)
+- Total employment = private + public
+- Employment indicators distinguish public and private shares
 
 ## Bank Lending: Creditworthiness-Based
 
@@ -322,7 +389,7 @@ Where:
 ### Creditworthiness Assessment
 Banks evaluate potential borrowers on:
 1. **Income** — is the borrower's income sufficient to service the debt?
-2. **Existing debt** — debt-to-income ratio. Higher existing debt → higher risk → higher premium or rejection.
+2. **Existing debt** — debt-to-income ratio. Higher existing debt -> higher risk -> higher premium or rejection.
 3. **Collateral** — for secured loans (mortgages), the value of the asset backing the loan.
 
 ### Loan Types (MVP)
@@ -373,15 +440,15 @@ The game models the real-world procedure (auctions) while allowing players to ob
 - Government pays interest on outstanding bonds each period
 - This is government spending (creates new currency)
 - Interest payments flow to bond holders (banks in MVP; post-MVP secondary market enables household bond holding)
-- This creates a distributional dynamic: deficit → bonds → interest → flows to bond holders
+- This creates a distributional dynamic: deficit -> bonds -> interest -> flows to bond holders
 
 ## Investment
 
 ### Public Investment (Government)
 Government spending on **infrastructure** builds public capital that benefits all sectors:
-- Improves transportation → reduces costs for all firms
-- Improves utilities → increases productive capacity
-- Improves education/health (public services) → increases labor productivity over time
+- Improves transportation -> reduces costs for all firms
+- Improves utilities -> increases productive capacity
+- Improves education/health (public services) -> increases labor productivity over time
 
 Public capital depreciates slowly and requires maintenance spending.
 
@@ -393,7 +460,7 @@ Firms invest in capital goods to maintain and expand productive capacity:
 - Current capacity utilization (if near full, need to expand)
 - Profitability (can they afford it from retained profits?)
 - Borrowing costs (bank lending rate)
-- Available capital goods on the market (produced by industry sector)
+- Available capital goods on the market (produced by manufacturing sector)
 
 **Funding sources:**
 1. Retained profits (internally generated funds)
@@ -402,7 +469,7 @@ Firms invest in capital goods to maintain and expand productive capacity:
 **Capital dynamics:**
 - Capital goods depreciate over time (require replacement investment)
 - New investment expands productive capacity
-- Industry sector produces capital goods for all sectors (including itself)
+- Manufacturing sector produces capital goods for all sectors (including itself)
 
 ## Time and Lags
 
@@ -435,7 +502,7 @@ Natural economic processes also have delays:
 The UI shows pending changes in a pipeline:
 - "Government spending increase: $X arriving in 2 months"
 - "Infrastructure project: 40% complete, capacity boost in 4 months"
-- Color-coded indicators for "policy enacted" → "in pipeline" → "taking effect"
+- Color-coded indicators for "policy enacted" -> "in pipeline" -> "taking effect"
 
 ## Simulation Tick Sequence
 
@@ -447,22 +514,33 @@ Each monthly tick processes in this order:
       (deposits destroyed, reserves returned to treasury)
    b. Execute spending: pay for infrastructure, public services, transfers
       (new reserves created, flow to bank deposits)
-   c. Pay interest on outstanding bonds
-   d. Issue new bonds if needed (auction)
+   c. Compute government resource demand from spending allocation:
+      - Register public sector job postings with labor market
+        (infrastructure workers, public service employees)
+      - Register procurement demand with sectors
+        (construction output, manufacturing materials)
+      - Direct transfers: no resource demand, income flows to households
+   d. Pay interest on outstanding bonds
+   e. Issue new bonds if needed (auction)
 
 2. PRODUCTION PHASE
    a. Firms assess demand (based on previous period sales + expectations)
    b. Firms set production targets
    c. Firms post job openings with wages
-   d. Households accept/reject job offers
-   e. Production occurs using available labor + materials + capital
-   f. Goods enter inventory
+   d. Government posts job openings with public pay scale
+   e. Households evaluate ALL job postings (firm + government),
+      accept/reject based on reservation wage, prefer higher pay
+   f. Production occurs using available labor + materials + capital
+   g. Goods enter inventory
 
 3. MARKET PHASE
    a. Firms set prices (cost-plus markup with demand adjustment)
-   b. Households purchase goods according to hierarchical needs
-   c. Firms sell from inventory
-   d. Unsold goods remain in inventory (potential waste/depreciation)
+   b. ConsumptionEngine computes AIDS budget shares per household class
+      using current prices and disposable income
+   c. Nominal demand per sector = budget shares x disposable income
+   d. Government procurement demand added to sector demand
+   e. Firms sell from inventory to meet combined demand
+   f. Unsold goods remain in inventory (potential waste/depreciation)
 
 4. FINANCIAL PHASE
    a. Banks assess loan applications
@@ -486,6 +564,7 @@ These are tracked and displayed to the player:
 |---|---|
 | **Employment rate** | Workers employed / Total labor force |
 | **Unemployment rate** | Workers seeking work but not employed / Total labor force |
+| **Public sector employment share** | Public sector workers / Total employed workers |
 | **Inflation rate** | % change in average price level from previous period |
 | **GDP (Output)** | Total value of goods and services produced |
 | **Government balance** | Spending - Tax revenue (negative = deficit) |
@@ -506,6 +585,7 @@ The MVP implements the full model above with these simplifications:
 | Aspect | MVP simplification | Full game target |
 |---|---|---|
 | Household classes | 3 fixed classes | 5+ classes or continuous spectrum |
+| Sector granularity | 4 top-level sectors | Sub-sector hierarchy (8-15 sectors) via parentId |
 | Foreign sector | None (closed economy) | Multiple AI nations with trade |
 | Bank competition | Single aggregate bank | Multiple competing banks |
 | Bond secondary market | No resale | Full secondary market |
@@ -514,3 +594,4 @@ The MVP implements the full model above with these simplifications:
 | Firm heterogeneity | One representative firm per sector | Multiple competing firms per sector |
 | Wage negotiation | Simple posting/acceptance | Collective bargaining, contracts |
 | Government spending types | 3 (infrastructure, services, transfers) | More granular spending categories |
+| AIDS parameters | US-based estimates | Country-specific parameter sets |

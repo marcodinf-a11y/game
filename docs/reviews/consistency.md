@@ -293,7 +293,7 @@ But commercial banks are private sector entities that necessarily interact with 
 
 ---
 
-### M10. QueryByPath Interface Completely Unspecified
+### ~~M10. QueryByPath Interface Completely Unspecified~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -308,9 +308,11 @@ There is no schema or registry of valid paths. There is no specification of what
 
 **Suggested resolution:** Add a path schema specification to Architecture 6.6. Define the root paths (e.g., `government.*`, `banks.*`, `firms.<sector>.*`, `households.<class>.*`, `indicators.*`), their leaf properties, and the return types. This can be a table or a tree listing.
 
+**Resolution:** Replaced the 3-line Architecture §6.6 with a full path schema specification. Defined seven root paths (`time`, `government`, `centralbank`, `banks`, `firms.<sectorId>`, `households.<classId>`, `indicators`) with source interfaces, collection keys, and example paths with C# return types. Specified that the schema is **interface-derived** — leaf properties come from the `*State` / `IEconomicIndicators` interfaces in §3.3, so any property added to those interfaces automatically becomes a valid path. Defined error behavior: invalid/null paths return `null`, no exceptions across the boundary. Specified reflection-based `StatePathResolver` implementation with compile-time caching. Clarified that `QueryByPath` is for console and mod scripts only — chart/UI systems use typed `ISimulationState` properties directly (§6.3). Updated `QueryByPath` doc comment in §3.1 to reference §6.6. Replaced single Implementation Plan Phase 8 test with five specific tests (path resolution for government, firm sectors, household classes, indicators, and invalid paths). Updated Phase 8 GREEN step 3 to reference `StatePathResolver` and §6.6. Updated Phase 11 chart binding to note typed access. Updated Phase 12 console query command to reference §6.6 schema.
+
 ---
 
-### M11. No Architecture for Hierarchical Consumption
+### ~~M11. No Architecture for Hierarchical Consumption~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -327,9 +329,11 @@ Implementation Plan Phase 4 tests this (test 12: `FrSim003_HouseholdsBuySurvival
 
 **Suggested resolution:** Add a hierarchical consumption component to the Architecture. Specify: how goods map to need levels (data-driven via `IDataProvider`), the evaluation order (strict priority vs. blending), how price elasticity varies by need level (FR-AGT-004), and how unmet needs affect household behavior.
 
+**Resolution:** Replaced the hierarchical needs model entirely with the Almost Ideal Demand System (AIDS, Deaton & Muellbauer 1980). Added `IConsumptionEngine` interface (Architecture Section 3.13) with full AIDS formula, per-class parameterization (alpha, beta, gamma), theoretical constraints (adding-up, homogeneity, symmetry), and edge case handling. Updated `IHouseholdClassState` (Section 3.3) to expose `BudgetShares`, `ConsumptionBySector`, and `TotalConsumption` instead of single `ConsumptionSpending`. Updated tick data flow (Section 4.1) Market Phase to show AIDS computation. Added `ConsumptionEngine.cs` to project structure and `ConsumptionData.cs` to data models. Dropped `GoodsData.cs` and `goods.json` — the goods abstraction is replaced by a hierarchical sector structure (sectors with `parentId` for post-MVP sub-sector expansion). Updated PRD FR-AGT-004 to reference AIDS. Updated Implementation Plan Phase 4 with AIDS-specific tests and implementation steps. Also restructured sectors from 3 (agriculture, industry, services) to 4 (agriculture & primary, manufacturing, construction, services) to match standard macroeconomic textbook aggregation. Added government as direct employer and procurer (Architecture Section 3.14, `IGovernmentDemand` interface) — government competes in the labor market and procures from private sectors, creating visible real resource competition central to MMT. Updated `IGovernmentState` with public employment properties. Added `PublicSectorEmploymentShare` to `IEconomicIndicators`.
+
 ---
 
-### M9. Missing Project Structure Files
+### ~~M9. Missing Project Structure Files~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -346,11 +350,13 @@ Implementation Plan Phase 4 tests this (test 12: `FrSim003_HouseholdsBuySurvival
 
 **Suggested resolution:** Either add these files to the appropriate implementation phases, or remove them from the Architecture if they are not needed for the MVP.
 
+**Resolution:** Resolved each item individually: (1) `default-map.json` — added placeholder creation to Phase 1 GREEN step 6 and real content population to Phase 14 task 2. (2) `Game.Tests.csproj` — removed from Architecture Section 5; no implementation phase needs it and all UI phases use manual verification (see L3). If automated Godot-side tests are added post-MVP, the project can be created then. (3) `TestDataBuilder.cs` — added skeleton creation to Phase 0 task 8, alongside the other two test helpers. (4) `TestData/Scenarios/*.json` — added creation of `high-inflation.json`, `high-unemployment.json`, and `steady-state.json` to Phase 8 GREEN step 6, where they serve as fixtures for integration tests under specific economic conditions.
+
 ---
 
 ## Low Findings
 
-### L1. Wrong Requirement ID in Test Name
+### ~~L1. Wrong Requirement ID in Test Name~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -360,9 +366,11 @@ Phase 4 test 12: `FrSim003_HouseholdsBuySurvivalBeforeComfort` references FR-SIM
 
 **Fix:** Rename to `FrAgt004_HouseholdsBuySurvivalBeforeComfort`.
 
+**Resolution:** Test removed entirely. The hierarchical needs model was replaced by the AIDS consumption model. Phase 4 now has AIDS-specific tests (e.g., `FrAgt004_IncomeIncrease_FoodBudgetShareDeclines`) that correctly reference FR-AGT-004.
+
 ---
 
-### L2. Missing Test Coverage for Specific PRD Sub-Requirements
+### ~~L2. Missing Test Coverage for Specific PRD Sub-Requirements~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -379,7 +387,6 @@ The following PRD sub-requirements have no corresponding test in the Implementat
 | FR-PRC-002 | All three buffers exhausted -> inflation occurs |
 | FR-PRC-003 | Sector-specific price tracking |
 | FR-AGT-004 | Debt capacity varies by household class |
-| FR-AGT-004 | Price elasticity varies by need level |
 | ~~FR-BND-001~~ | ~~High-income households can bid on bonds~~ (removed from requirement; see M8 resolution) |
 | FR-INV-002 | Capital goods produced by industry sector |
 | FR-TIM-002 | Hiring/firing lag (1-2 ticks) |
@@ -387,9 +394,17 @@ The following PRD sub-requirements have no corresponding test in the Implementat
 | FR-TIM-002 | Household spending adjustment lag (1 tick) |
 | FR-SIM-004 | Individual tests for: unemployment rate, bond yields, savings rate, wage growth, bank reserves |
 
+**Resolution:** Added 14 tests across 4 phases of the Implementation Plan:
+- **Phase 4** (tests 28–31): `FrLbr001_WageStickyDownward_SlowToDecreaseInSlack`, `FrLbr001_WageInfluencedBy_SectorConditionsLaborScarcityProfitability`, `FrLbr002_WorkerMobility_CrossSectorOverTime`, `FrPrc003_SectorSpecificPrices_TrackedSeparately`
+- **Phase 5** (test 15): `FrAgt004_DebtCapacity_VariesByHouseholdClass`
+- **Phase 7** (tests 15–18): `FrInv002_CapitalGoods_ProducedByManufacturingSector`, `FrTim002_HiringFiring_LagsOneToTwoTicks`, `FrTim002_InvestmentToCapacity_LagsThreeToSixTicks`, `FrTim002_HouseholdSpendingAdjustment_LagsOneTick`
+- **Phase 8** (tests 19–23): `FrSim004_UnemploymentRate_CalculatedCorrectly`, `FrSim004_BondYields_WeightedAverageCouponRate`, `FrSim004_SavingsRate_CalculatedCorrectly`, `FrSim004_WageGrowth_CalculatedAsPercentChange`, `FrSim004_BankReserves_CalculatedCorrectly`
+
+FR-PRC-002 items (profit margin compression, all-three-exhausted) were already resolved by C6 — Phase 4 tests 12 and 14. FR-BND-001 household bond test removed per M8 resolution.
+
 ---
 
-### L3. Testability Contract Contradicts Manual-Only Testing for UI Phases
+### ~~L3. Testability Contract Contradicts Manual-Only Testing for UI Phases~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -524,21 +539,21 @@ FR-SIM-001 (SFC accounting), FR-SIM-003 (tick processing), FR-AGT-002 (central b
 | Requirement | Issue(s) |
 |---|---|
 | FR-SIM-002 | ~~C2 (ILedger interface)~~ ✅, ~~M6 (oversimplified circuit access)~~ ✅ |
-| FR-SIM-004 | M3 (IEconomicIndicators undefined), ~~M7 (bond yields)~~ ✅, L2 (missing indicator tests) |
+| FR-SIM-004 | M3 (IEconomicIndicators undefined), ~~M7 (bond yields)~~ ✅, ~~L2 (missing indicator tests)~~ ✅ |
 | FR-AGT-001 | M3 (IGovernmentState undefined) |
 | FR-AGT-003 | L11 (single vs. plural bank ambiguity) |
-| FR-AGT-004 | M11 (no architecture for hierarchical consumption), L2 (missing debt capacity and elasticity tests) |
+| FR-AGT-004 | ~~M11 (no architecture for hierarchical consumption)~~ ✅, ~~L2 (missing debt capacity test)~~ ✅ |
 | FR-PRC-002 | ~~C6 (no architecture, missing tests for buffer 3)~~ ✅ |
-| FR-PRC-003 | L2 (sector-specific price tracking untested) |
-| FR-LBR-001 | L2 (wage stickiness and determinants untested) |
-| FR-LBR-002 | L2 (cross-sector mobility untested) |
+| FR-PRC-003 | ~~L2 (sector-specific price tracking untested)~~ ✅ |
+| FR-LBR-001 | ~~L2 (wage stickiness and determinants untested)~~ ✅ |
+| FR-LBR-002 | ~~L2 (cross-sector mobility untested)~~ ✅ |
 | FR-BND-001 | ~~M8 (household bond participation)~~ ✅ |
 | FR-INV-001 | C5 (absent from architecture) |
-| FR-INV-002 | C5 (absent from architecture), L2 (capital goods from industry untested) |
-| FR-TIM-001 | C4 (no architecture component), L2 (lag ranges untested) |
-| FR-TIM-002 | C4 (no architecture component), L2 (most lag types untested) |
+| FR-INV-002 | C5 (absent from architecture), ~~L2 (capital goods from industry untested)~~ ✅ |
+| FR-TIM-001 | C4 (no architecture component) |
+| FR-TIM-002 | C4 (no architecture component), ~~L2 (most lag types untested)~~ ✅ |
 | FR-TIM-003 | C4 (no data source for UI) |
 | FR-CTL-001 | L10 (SpendingAllocation type undefined) |
-| FR-CON-002 | M10 (QueryByPath path schema unspecified) |
+| FR-CON-002 | ~~M10 (QueryByPath path schema unspecified)~~ ✅ |
 | FR-UI-007 | C4 (no data source for pipeline display) |
 | NFR-DTA-001 | L12 (no error recovery strategy for SFC failures) |
