@@ -25,7 +25,12 @@ This is not an assumption — it is enforced by the double-entry bookkeeping. Ev
 
 ## Two Money Circuits
 
-The model explicitly tracks two layers of money, reflecting how modern monetary systems actually operate.
+The model explicitly tracks two layers of money, reflecting how modern monetary systems actually operate. **This two-layer structure is fundamental to the entire economic model.** All money flows in the simulation must respect which layer they belong to:
+
+- **Reserve layer (central bank money):** Used for settlement between institutions — government↔bank transactions, bank↔bank transactions. Households and firms never touch this layer.
+- **Deposit layer (bank money):** Used for all private sector activity — wages, purchases, savings. This is the only money households and firms see.
+
+Any transaction that crosses a bank boundary (e.g., a household at Bank A paying a firm at Bank B) triggers movements in **both** layers simultaneously: deposits move in the lower layer, reserves move in the upper layer. Transactions within the same bank only move deposits.
 
 ### Central Bank Money (Reserves)
 
@@ -58,6 +63,17 @@ The model explicitly tracks two layers of money, reflecting how modern monetary 
 1. Taxpayer's deposit account debited at their bank
 2. Bank's reserve account at central bank debited
 3. Treasury account credited (money effectively destroyed)
+
+**Interbank payment flow (e.g., household at Bank A pays firm at Bank B):**
+1. Payer's deposit account debited at Bank A
+2. Bank A's reserve account debited
+3. Bank B's reserve account credited
+4. Payee's deposit account credited at Bank B
+
+**Intra-bank payment flow (payer and payee at same bank):**
+1. Payer's deposit account debited
+2. Payee's deposit account credited
+3. No reserves move — internal ledger adjustment only
 
 ### Deposit Money (Bank Deposits)
 
