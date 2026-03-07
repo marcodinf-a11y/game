@@ -500,7 +500,7 @@ When a loan is repaid:
 
 ## Government Bonds: Auction-Based
 
-The government issues bonds following real-world institutional practice. As described in the MMT Context below, bond issuance is a reserve management operation — it drains excess reserves from the banking system, not a means of "financing" the deficit.
+The government issues bonds following real-world institutional practice. Bond issuance is a reserve management operation, not a means of "financing" the deficit (see MMT Context below).
 
 ### MMT Context
 In MMT, bond issuance is a reserve-draining operation, not "financing" for government spending. The government spends first (creating reserves) and then issues bonds (swapping reserves for bonds). Bonds are a monetary policy tool, not a fiscal necessity.
