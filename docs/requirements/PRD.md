@@ -118,13 +118,16 @@ An open source, single-player economic simulation game built on Modern Monetary 
 #### FR-PRC-001: Cost-Plus Markup Pricing
 - Prices must be calculated as: (unit labor cost + unit material cost) × (1 + markup)
 - Unit labor cost must equal: total wages / total output (not raw wage rate)
-- Markup must adjust based on demand relative to capacity
+- Markup must adjust based on demand relative to capacity with asymmetric speeds: fast upward (firms exploit pricing power quickly), slow downward (firms resist margin compression) (ADR-0010)
+- Per-sector parameters `markupUpwardSpeed` and `markupDownwardSpeed` must be loaded from sector data
 
-#### FR-PRC-002: Three Inflation Buffers
+#### FR-PRC-002: Inflation Buffers and Supply-Side Markup Pressure
 - Productivity gains must absorb wage increases (if productivity rises with wages, no price pressure)
 - Demand slack must absorb spending increases (if idle capacity exists, more output not higher prices)
 - Profit margin compression must absorb cost increases (firms may accept lower markup)
-- Inflation must only occur when all three buffers are exhausted
+- Demand-pull inflation must only occur when all three buffers above are exhausted
+- Supply-side markup pressure (seller's inflation) must operate independently of the demand buffers: when input availability drops, firms must raise markups using a supply pressure factor (normal input availability / actual input availability) (ADR-0010)
+- The supply pressure factor must use the same asymmetric adjustment speeds as demand-driven markup changes
 
 #### FR-PRC-003: Inflation Measurement
 - Inflation must be measured as percentage change in average price level between ticks

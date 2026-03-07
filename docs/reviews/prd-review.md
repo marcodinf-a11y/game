@@ -16,11 +16,11 @@ Four-axis review of the PRD covering correctness, staleness, completeness, and a
 - **PRD:** FR-INV-002 (line 196): "Capital goods must be produced by the industry sector"
 - **Conflict:** FR-AGT-005 (line 112) in the same PRD says "manufacturing sector." ADR-0005, ECONOMIC-MODEL, and GAME-DESIGN all use "manufacturing." No "industry" sector exists in the 4-sector model.
 
-### C2: FR-PRC-002 omits seller's inflation from ADR-0010
+### ~~C2: FR-PRC-002 omits seller's inflation from ADR-0010~~ ✅ Resolved
 - **PRD:** FR-PRC-002 (line 127): "Inflation must only occur when all three buffers are exhausted"
 - **Conflict:** ADR-0010 added seller's inflation (supply-side markup pressure) as a fourth channel independent of demand buffers. ECONOMIC-MODEL SS313-327 documents this.
 
-### C3: FR-PRC-001 treats markup adjustment as symmetric
+### ~~C3: FR-PRC-001 treats markup adjustment as symmetric~~ ✅ Resolved
 - **PRD:** FR-PRC-001 (line 121): "Markup must adjust based on demand relative to capacity"
 - **Conflict:** ADR-0010 specifies asymmetric speeds (upward fast 0.5, downward slow 0.1) with per-sector parameters `markupUpwardSpeed` and `markupDownwardSpeed`.
 
@@ -49,7 +49,7 @@ Four-axis review of the PRD covering correctness, staleness, completeness, and a
 ### ~~S1: FR-INV-002 "industry sector" (same as C1)~~ ✅ Resolved
 Leftover from old 3-sector model before ADR-0005.
 
-### S2: FR-PRC-002 three-buffer-only model (same as C2)
+### ~~S2: FR-PRC-002 three-buffer-only model (same as C2)~~ ✅ Resolved
 Missing seller's inflation from ADR-0010.
 
 ### ~~S3: NFR-EXT-001 references "goods/resources"~~ ✅ Resolved
@@ -70,7 +70,7 @@ Neither section references the Leontief I-O production function from ADR-0009.
 ### G1: Leontief I-O production function (same as C7/S5)
 No FR for fixed-proportion production or inter-sector I-O matrix.
 
-### G2: Seller's inflation / supply-side markup pressure (same as C2/S2)
+### ~~G2: Seller's inflation / supply-side markup pressure (same as C2/S2)~~ ✅ Resolved
 No FR for the supply pressure mechanism from ADR-0010.
 
 ### G3: Government spending cannot be financially constrained
@@ -156,8 +156,8 @@ Needed for testability and modding. PRD mentions procurement at high level only.
 
 ### High (blocks implementation or is factually wrong)
 - ~~C1/S1: "industry" to "manufacturing" (trivial fix)~~ ✅
-- C2/S2/G2: Add seller's inflation requirement per ADR-0010
-- C3: Add asymmetric markup adjustment per ADR-0010
+- ~~C2/S2/G2: Add seller's inflation requirement per ADR-0010~~ ✅
+- ~~C3: Add asymmetric markup adjustment per ADR-0010~~ ✅
 - C7/S5/G1: Add Leontief I-O production function requirement per ADR-0009
 - G3/G4: Add MMT invariants (no financial constraint on spending, no sovereign default)
 - ~~S3/S4: "goods" to "sectors" (trivial fix)~~ ✅
