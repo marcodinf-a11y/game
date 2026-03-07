@@ -510,9 +510,9 @@ Each monthly tick processes in this order:
 
 ```
 1. GOVERNMENT PHASE
-   a. Collect taxes from households and firms
-      (deposits destroyed, reserves returned to treasury)
-   b. Execute spending: pay for infrastructure, public services, transfers
+   a. Execute spending: pay for infrastructure, public services, transfers
+      (new reserves created, flow to bank deposits)
+   b. Pay interest on outstanding bonds
       (new reserves created, flow to bank deposits)
    c. Compute government resource demand from spending allocation:
       - Register public sector job postings with labor market
@@ -520,8 +520,10 @@ Each monthly tick processes in this order:
       - Register procurement demand with sectors
         (construction output, manufacturing materials)
       - Direct transfers: no resource demand, income flows to households
-   d. Pay interest on outstanding bonds
+   d. Collect taxes from households and firms
+      (deposits destroyed, reserves returned to treasury)
    e. Issue new bonds if needed (auction)
+      (drains excess reserves from banking system)
 
 2. PRODUCTION PHASE
    a. Firms assess demand (based on previous period sales + expectations)

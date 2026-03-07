@@ -691,13 +691,13 @@ Tick Engine
     │
     ├── 1. Government Phase
     │   ├── Flush policy pipeline → apply changes whose lag has expired
-    │   ├── Collect taxes → Ledger.RecordTransaction (Deposits: taxpayer → bank) then (Reserves: bank → treasury)
     │   ├── Execute spending → Ledger.RecordTransaction (Reserves: treasury → bank) then (Deposits: bank → recipient)
+    │   ├── Pay bond interest → Ledger.RecordTransaction (Reserves + Deposits)
     │   ├── Process public investment → InvestmentEngine.ProcessPublicInvestment()
     │   ├── Compute government resource demand from spending allocation:
     │   │   ├── Register public sector job postings with LaborMarket
     │   │   └── Register procurement demand with sectors
-    │   ├── Pay bond interest → Ledger.RecordTransaction (Reserves + Deposits)
+    │   ├── Collect taxes → Ledger.RecordTransaction (Deposits: taxpayer → bank) then (Reserves: bank → treasury)
     │   └── Bond auction → BondMarket.RunAuction()
     │
     ├── 2. Production Phase
