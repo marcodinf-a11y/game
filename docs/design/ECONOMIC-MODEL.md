@@ -152,8 +152,11 @@ Operates the reserve system and sets monetary policy.
 **Actions:**
 - Maintain reserve accounts for commercial banks
 - Set the policy interest rate (base rate)
+- Provide reserves to commercial banks on demand at the policy rate (lender of last resort / standing facility)
 - Buy/sell government bonds on secondary market (buyer of last resort)
 - In MVP: policy rate can default to 0
+
+Reserve provision ensures that bank lending is never constrained by reserve availability. Banks lend based on creditworthiness of borrowers and profitability, then obtain any needed reserves from the central bank. In the MVP with a single aggregate bank, reserve provision is simplified (the single bank's reserves are the net result of government spending minus taxation, plus any central bank operations).
 
 ### Commercial Banks
 
