@@ -507,6 +507,9 @@ The game models the real-world procedure (auctions) while allowing players to ob
 - Interest payments flow to bond holders (banks in MVP; post-MVP secondary market enables household bond holding)
 - This creates a distributional dynamic: deficit -> bonds -> interest -> flows to bond holders
 
+### No Sovereign Default
+The government, as currency issuer, always pays bond interest and principal when due. Bond payments are government spending (currency creation). Sovereign default on domestic-currency-denominated debt is a political choice, never an operational necessity. The game does not model voluntary default.
+
 ## Investment
 
 ### Public Investment (Government)

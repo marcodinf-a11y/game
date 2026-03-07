@@ -364,7 +364,7 @@ All firms are described as "profit-driven." This excludes public enterprises, no
 | F3 | Critical | Production function undefined — must be Leontief | **Resolved** — Leontief I-O production function added to ECONOMIC-MODEL.md |
 | F4 | Medium | Missing seller's inflation / profit-push mechanism | **Resolved** — asymmetric markup adjustment + supply-side markup pressure added to ECONOMIC-MODEL.md |
 | F5 | Medium | Debt-to-GDP framing embeds mainstream assumptions | **Resolved** — renamed to "Government bonds outstanding / GDP", added "Private sector net financial assets" companion, neutral government balance framing |
-| F6 | Medium | Missing: government cannot default on own currency | Fix: add explicit statement |
+| F6 | Medium | Missing: government cannot default on own currency | **Resolved** — "No Sovereign Default" subsection added to ECONOMIC-MODEL.md Government Bonds section |
 | F7 | Medium | Saving-investment causation direction ambiguous | Fix: reframe investment funding section |
 | F8 | Medium | No mechanism for central bank reserve provision | Fix: add reserve provision to CB actions |
 | F9 | Medium | Bond issuance framed as deficit management | Fix: correct to reserve management |
