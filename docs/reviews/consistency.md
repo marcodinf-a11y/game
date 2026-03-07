@@ -503,7 +503,7 @@ Similarly, `IDataValidator.cs` and `DataValidator.cs` are described in Architect
 
 ---
 
-### L10. SpendingAllocation Type Referenced But Never Defined
+### ~~L10. SpendingAllocation Type Referenced But Never Defined~~ ✅ Resolved
 
 | Aspect | Detail |
 |---|---|
@@ -511,6 +511,8 @@ Similarly, `IDataValidator.cs` and `DataValidator.cs` are described in Architect
 | Requirements | FR-CTL-001 |
 
 `ISimulationCommands.SetSpendingAllocation(SpendingAllocation allocation)` references a `SpendingAllocation` type that is never defined in the Architecture. Is it a struct, class, or enum? What fields does it have? FR-CTL-001 requires allocation across infrastructure, public services, and direct transfers — so presumably it has three fields that sum to 100%. But this is left implicit.
+
+**Resolution:** Added `SpendingAllocation` record definition to Architecture Section 3.2 with three `decimal` fields: `Infrastructure`, `PublicServices`, `DirectTransfers`. Shares must sum to 1.0, validated on construction. Defined as a C# record (immutable value semantics) since it is a simple data carrier passed through `ISimulationCommands`, stored in `IGovernmentState`, and serialized in `IPendingPolicy`.
 
 ---
 
@@ -579,7 +581,7 @@ FR-SIM-001 (SFC accounting), FR-SIM-003 (tick processing), FR-AGT-002 (central b
 | FR-TIM-001 | C4 (no architecture component) |
 | FR-TIM-002 | C4 (no architecture component), ~~L2 (most lag types untested)~~ ✅ |
 | FR-TIM-003 | C4 (no data source for UI) |
-| FR-CTL-001 | L10 (SpendingAllocation type undefined) |
+| FR-CTL-001 | ~~L10 (SpendingAllocation type undefined)~~ ✅ |
 | FR-CON-002 | ~~M10 (QueryByPath path schema unspecified)~~ ✅ |
 | FR-UI-007 | C4 (no data source for pipeline display) |
 | NFR-DTA-001 | L12 (no error recovery strategy for SFC failures) |

@@ -178,6 +178,14 @@ The `*State` interfaces (`IGovernmentState`, `ICentralBankState`, etc.) are read
 The UI sends commands to the simulation through a command interface:
 
 ```csharp
+/// Three spending categories (FR-CTL-001). Shares must sum to 1.0.
+/// Validated on construction; the simulation rejects invalid allocations.
+public record SpendingAllocation(
+    decimal Infrastructure,
+    decimal PublicServices,
+    decimal DirectTransfers
+);
+
 public interface ISimulationCommands
 {
     void SetSpendingLevel(decimal amount);
